@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "fn_compose_studio"
+version = "0.1.0"
+description = "A web based explorer for fn_compose composers"
+authors = ["James Saunders <james@businessoptics.biz>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+pandas = "^0.25.3"
+plotly = "^4.4"
+dash = "^1.7"
+dash_core_components = "^1.6"
+fn_compose = {git = "git@github.com:BusinessOptics/fn_compose.git"}
+dash_treeview_antd = "^0.0.1"
+dash_split_pane = "^1.0"
+dash_interactive_graphviz = "^0.0.2"
+[tool.poetry.dev-dependencies]
+black = {version = "^18.3-alpha.0", allows-prereleases = true}
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
