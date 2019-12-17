@@ -14,6 +14,7 @@ from dash.exceptions import PreventUpdate
 
 from dash_split_pane import DashSplitPane
 from dash_interactive_graphviz import DashInteractiveGraphviz
+from fn_graph.calculation import NodeInstruction, get_execution_instructions
 
 
 def BasePane(default_style):
@@ -135,6 +136,7 @@ def function_graph(composer):
                         options=[
                             {"label": "Flatten", "value": "flatten"},
                             {"label": "Parameters", "value": "parameters"},
+                            {"label": "Caching", "value": "caching"},
                         ],
                         persistence=True,
                         labelStyle=dict(paddingLeft=10),
@@ -314,6 +316,7 @@ def populate_graph(
     graph_display_options = graph_display_options or []
     hide_parameters = "parameters" not in graph_display_options
     flatten = "flatten" in graph_display_options
+    caching = "caching" in graph_display_options
 
     G = composer.dag()
     subgraph = set()
@@ -348,11 +351,28 @@ def populate_graph(
                 )
             )
 
+    if caching:
+        instructions = get_execution_instructions(composer, composer.dag(), [])
+
+        def get_node_styles(instruction):
+            return {
+                NodeInstruction.IGNORE: dict(color="green", penwidth="2"),
+                NodeInstruction.RETRIEVE: dict(color="orange", penwidth="2"),
+                NodeInstruction.CALCULATE: dict(color="red", penwidth="2"),
+            }[instruction]
+
+        extra_node_styles = {
+            node: get_node_styles(instruction) for node, instruction in instructions
+        }
+    else:
+        extra_node_styles = {}
+
     return composer.graphviz(
         hide_parameters=hide_parameters,
         flatten=flatten,
         highlight=selected_nodes,
         filter=subgraph,
+        extra_node_styles=extra_node_styles,
     ).source
 
 
@@ -497,9 +517,7 @@ def Studio(app, composer, result_renderers=None):
     return app
 
 
-def run_studio(composer, cache=True, **kwargs):
+def run_studio(composer, **kwargs):
     app = Dash(__name__)
-    if cache:
-        composer = composer.cache()
     Studio(app, composer, **kwargs)
     app.run_server(debug=True)

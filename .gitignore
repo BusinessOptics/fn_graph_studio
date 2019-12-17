@@ -139,3 +139,6 @@ Source.gv
 Source.gv.pdf
 Digraph.gv
 Digraph.gv.pdf
+
+# Caching folders
+.fn_graph_cache

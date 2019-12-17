@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "fn_compose_studio"
+name = "fn_graph_studio"
 version = "0.1.0"
-description = "A web based explorer for fn_compose composers"
+description = "A web based explorer for fn_graph function composers"
 authors = ["James Saunders <james@businessoptics.biz>"]
 license = "MIT"
 
@@ -11,10 +11,10 @@ pandas = "^0.25.3"
 plotly = "^4.4"
 dash = "^1.7"
 dash_core_components = "^1.6"
-fn_compose = {git = "git@github.com:BusinessOptics/fn_compose.git"}
 dash_treeview_antd = "^0.0.1"
 dash_split_pane = "^1.0"
 dash_interactive_graphviz = "^0.0.2"
+fn_graph = "^0.1.0"
 [tool.poetry.dev-dependencies]
 black = {version = "^18.3-alpha.0", allows-prereleases = true}
 [build-system]

@@ -1,13 +1,16 @@
 import sys
 from pathlib import Path
 from random import choice, random
+import logging
 
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 
-from fn_compose import Composer
-from fn_compose_studio import run_studio
+from fn_graph import Composer
+from fn_graph_studio import run_studio
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def get_car_prices():
@@ -17,6 +20,7 @@ def get_car_prices():
             price=[random() * 100_000 + 50000 for _ in range(10)],
         )
     )
+
     return df
 
 
@@ -37,6 +41,7 @@ def get_savings_on_cheaper_cars(cheaper_cars, mean_car_price):
 
 
 def get_burger_savings(savings_on_cheaper_cars, price_of_a_burger):
+
     return savings_on_cheaper_cars.assign(
         burgers_saved=lambda df: df.savings / price_of_a_burger
     )
@@ -55,4 +60,5 @@ f = (
     .update_parameters(your_car_price=100_000, price_of_a_burger=100)
 )
 
-run_studio(f)
+run_studio(f.development_cache(__name__))
+
