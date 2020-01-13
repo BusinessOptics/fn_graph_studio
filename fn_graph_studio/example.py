@@ -1,3 +1,4 @@
+#%%
 import sys
 from pathlib import Path
 from random import choice, random
@@ -62,3 +63,5 @@ f = (
 
 run_studio(f.development_cache(__name__))
 
+
+# %%

@@ -136,6 +136,7 @@ def function_graph(composer):
                         options=[
                             {"label": "Flatten", "value": "flatten"},
                             {"label": "Parameters", "value": "parameters"},
+                            {"label": "Links", "value": "links"},
                             {"label": "Caching", "value": "caching"},
                         ],
                         persistence=True,
@@ -287,8 +288,16 @@ def populate_result(composer, renderers, function_name, result_processor):
 
 def populate_definition(composer, function_name):
     fn = composer.raw_function(function_name)
-    source = inspect.getsource(fn)
+    is_parameter = function_name in composer._parameters
 
+    if is_parameter:
+        source = f"{function_name} = lambda: {composer._parameters[function_name]}"
+    elif getattr(fn, "_is_fn_graph_link", False):
+        parameter = list(inspect.signature(fn).parameters.keys())[0]
+        source = f"{function_name} = lambda {parameter}: {parameter}"
+    else:
+        source = inspect.getsource(fn)
+        
     return function_name, None, None, html.Pre(source, style=dict(padding="0.5rem"))
 
 
@@ -317,6 +326,7 @@ def populate_graph(
     hide_parameters = "parameters" not in graph_display_options
     flatten = "flatten" in graph_display_options
     caching = "caching" in graph_display_options
+    expand_links = "links" in graph_display_options
 
     G = composer.dag()
     subgraph = set()
@@ -370,6 +380,7 @@ def populate_graph(
     return composer.graphviz(
         hide_parameters=hide_parameters,
         flatten=flatten,
+        expand_links=expand_links,
         highlight=selected_nodes,
         filter=subgraph,
         extra_node_styles=extra_node_styles,
