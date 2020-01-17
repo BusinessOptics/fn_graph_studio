@@ -98,7 +98,7 @@ def add_default_renders(result_renderers):
     ]
 
 
-class Studio:
+class BaseStudio:
     def __init__(self, app, composer, result_renderers=None):
 
         app.title = "Fn Compose Studio"
@@ -137,17 +137,20 @@ class Studio:
             ],
         )(lambda *args: self.populate_graph(composer, *args))
 
+        sidebar_components = self.sidebar_components(composer)
+
         @app.callback(
             [
-                Output("function-tree-holder", "style"),
-                Output("function-graph-holder", "style"),
+                Output(component.id, "style")
+                for component in sidebar_components.values()
             ],
             [Input("explorer-selector", "value")],
         )
         def toggle_explorer(explorer):
+
             return [
                 dict(display="block" if option == explorer else "none")
-                for option in ["tree", "graph"]
+                for option in sidebar_components.keys()
             ]
 
         @app.callback(
@@ -207,6 +210,20 @@ class Studio:
                 return [selected]
             else:
                 return data.get("selected", [])
+
+    def layout(self, composer):
+        return Pane(
+            children=[
+                dcc.Location(id="url", refresh=False),
+                dcc.Store(id="session", storage_type="session"),
+                DashSplitPane(
+                    [self.sidebar(composer), self.results_pane()],
+                    size=400,
+                    persistence=True,
+                ),
+            ],
+            style=dict(width="100%", height="100%", position="absolute"),
+        )
 
     def function_tree(self, id, composer):
         functions = [dict(label=node, value=node) for node in composer.dag().nodes()]
@@ -295,7 +312,34 @@ class Studio:
             style=dict(height="100%", width="100%", position="absolute", padding="5px"),
         )
 
+    def sidebar_components(self, composer):
+        return {
+            "graph": Fill(
+                self.function_graph(composer),
+                id="function-graph-holder",
+                style=dict(display="none"),
+            ),
+            "tree": Fill(
+                self.function_tree("function-tree", composer),
+                id="function-tree-holder",
+                style=dict(display="none"),
+            ),
+        }
+
+    def result_processor(self):
+        return dcc.Textarea(
+            id="result-processor",
+            placeholder="e.g. result.query(....)",
+            rows=5,
+            style=dict(width="100%", border="none"),
+        )
+
     def sidebar(self, composer):
+        sidebar_components = self.sidebar_components(composer)
+        explorer_options = [
+            dict(value=k, label=k.capitalize()) for k in sidebar_components
+        ]
+
         return VStack(
             [
                 HStack(
@@ -303,10 +347,7 @@ class Studio:
                         html.Strong("Navigator: "),
                         dcc.RadioItems(
                             id="explorer-selector",
-                            options=[
-                                dict(value="tree", label="Tree"),
-                                dict(value="graph", label="Graph"),
-                            ],
+                            options=explorer_options,
                             labelStyle=dict(paddingLeft=10),
                             value="",
                         ),
@@ -316,32 +357,11 @@ class Studio:
                     ),
                 ),
                 Pane(
-                    [
-                        Fill(
-                            self.function_graph(composer),
-                            id="function-graph-holder",
-                            style=dict(display="none"),
-                        ),
-                        Fill(
-                            self.function_tree("function-tree", composer),
-                            id="function-tree-holder",
-                            style=dict(display="none"),
-                        ),
-                    ],
+                    list(sidebar_components.values()),
                     style=dict(flexGrow=1, flexShrink=1),
                 ),
                 VStack(
-                    [
-                        html.Strong("Result Processor"),
-                        # dash_editor_components.PythonEditor(
-                        dcc.Textarea(
-                            id="result-processor",
-                            placeholder="e.g. result.query(....)",
-                            # padding=0,
-                            rows=5,
-                            style=dict(width="100%", border="none"),
-                        ),
-                    ],
+                    [html.Strong("Result Processor"), self.result_processor()],
                     style=dict(
                         borderTop="1px solid lightgrey", padding="0.5rem", flexShrink=0
                     ),
@@ -385,19 +405,8 @@ class Studio:
             style=dict(flexGrow=1, flexShrink=1, height="100%"),
         )
 
-    def layout(self, composer):
-        return Pane(
-            children=[
-                dcc.Location(id="url", refresh=False),
-                dcc.Store(id="session", storage_type="session"),
-                DashSplitPane(
-                    [self.sidebar(composer), self.results_pane()],
-                    size=400,
-                    persistence=True,
-                ),
-            ],
-            style=dict(width="100%", height="100%", position="absolute"),
-        )
+    def process_result(self, result, result_processor_value):
+        return eval(result_processor_value, globals(), dict(result=result))
 
     def render_result(self, renderers, result):
         for typ, render in renderers:
@@ -405,13 +414,15 @@ class Studio:
                 return render(result)
         return "Rendering error - No matching renderer"
 
-    def populate_result(self, composer, renderers, function_name, result_processor):
+    def populate_result(
+        self, composer, renderers, function_name, result_processor_value
+    ):
         result = composer.calculate([function_name])[function_name]
 
         error = None
-        if result_processor:
+        if result_processor_value:
             try:
-                result = eval(result_processor, globals(), dict(result=result))
+                result = self.process_result(result, result_processor_value)
             except Exception as e:
                 error = str(e)
 
@@ -421,7 +432,7 @@ class Studio:
                     html.Div(
                         [html.Strong("Result processor error: "), html.Span(error)]
                     ),
-                    html.Pre(result_processor),
+                    html.Pre(result_processor_value),
                 ],
                 style=dict(padding="0.5rem", border="1px solid red", color="red"),
             )
@@ -549,7 +560,41 @@ class Studio:
         ).source
 
 
+class Studio(BaseStudio):
+    pass
+
+
+class ExternalStudio(BaseStudio):
+    """
+    This studio is mean to be suitable for release on the public internet. 
+    It does not allow for code injection (We think).
+
+    Use with Caution, this is a WIP.
+    """
+    def result_processor(self):
+        return dcc.Textarea(
+            id="result-processor",
+            placeholder='Enter a query string.\n\nYou can use full pandas query strings.\ne.g.: merchant_id == "ABC"',
+            rows=5,
+            style=dict(width="100%", border="none"),
+        )
+
+    def process_result(self, result, value):
+        from pandas import DataFrame
+
+        if isinstance(result, DataFrame):
+            return result.query(value, engine="numexpr", truediv=True)
+        else:
+            return result
+
+
 def run_studio(composer, **kwargs):
     app = Dash(__name__)
     Studio(app, composer, **kwargs)
+    app.run_server(debug=True)
+
+
+def run_external_studio(composer, **kwargs):
+    app = Dash(__name__)
+    ExternalStudio(app, composer, **kwargs)
     app.run_server(debug=True)
