@@ -571,6 +571,7 @@ class ExternalStudio(BaseStudio):
 
     Use with Caution, this is a WIP.
     """
+
     def result_processor(self):
         return dcc.Textarea(
             id="result-processor",
@@ -588,13 +589,19 @@ class ExternalStudio(BaseStudio):
             return result
 
 
-def run_studio(composer, **kwargs):
+def run_external_studio(composer, **kwargs):
+    """
+    Run an external studio for the given composer.
+    """
     app = Dash(__name__)
-    Studio(app, composer, **kwargs)
+    ExternalStudio(app, composer, **kwargs)
     app.run_server(debug=True)
 
 
-def run_external_studio(composer, **kwargs):
+def run_studio(composer, **kwargs):
+    """
+    Run a development studio for the given composer.
+    """
     app = Dash(__name__)
-    ExternalStudio(app, composer, **kwargs)
+    Studio(app, composer, **kwargs)
     app.run_server(debug=True)
