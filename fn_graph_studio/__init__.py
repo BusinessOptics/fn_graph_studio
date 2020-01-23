@@ -398,8 +398,15 @@ class BaseStudio:
         )
 
         error_container = html.Div(id="error-container")
-        result = Pane(Scroll(id="result-container"), style=dict(flexGrow=1))
+        
+        # TODO: Use this when Dash gets updated
+        # result = dcc.Loading(
+        #     Pane(Scroll(id="result-container"), style=dict(height="100%")),
+        #     style=dict(flexGrow=1)
+        # )
 
+        result = Pane(Scroll(id="result-container"), style=dict(flexGrow=1))
+        
         return VStack(
             [status_bar, error_container, result],
             style=dict(flexGrow=1, flexShrink=1, height="100%"),
@@ -584,7 +591,7 @@ class ExternalStudio(BaseStudio):
         from pandas import DataFrame
 
         if isinstance(result, DataFrame):
-            return result.query(value, engine="numexpr", truediv=True)
+            return result.query(value, truediv=True)
         else:
             return result
 
