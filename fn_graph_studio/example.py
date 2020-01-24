@@ -11,8 +11,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 from fn_graph import Composer
 from fn_graph_studio import run_studio
 
-logging.basicConfig(level=logging.DEBUG)
-
 
 def get_car_prices():
     df = pd.DataFrame(

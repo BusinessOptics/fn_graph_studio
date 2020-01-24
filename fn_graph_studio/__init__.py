@@ -1,7 +1,7 @@
 import base64
 import inspect
 
-from dash import Dash
+import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
@@ -9,11 +9,13 @@ import dash_treeview_antd
 import networkx as nx
 import pandas as pd
 import plotly.graph_objs
+from dash import Dash
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-
-from dash_split_pane import DashSplitPane
 from dash_interactive_graphviz import DashInteractiveGraphviz
+from dash_split_pane import DashSplitPane
+
+from dash_treebeard import DashTreebeard
 from fn_graph.calculation import NodeInstruction, get_execution_instructions
 
 
@@ -125,7 +127,7 @@ class BaseStudio:
             )
         )
 
-        app.callback(
+        @app.callback(
             Output(component_id="graphviz-viewer", component_property="dot_source"),
             [
                 Input(component_id="graph-display-options", component_property="value"),
@@ -135,7 +137,9 @@ class BaseStudio:
                 ),
                 Input(component_id="function-tree", component_property="selected"),
             ],
-        )(lambda *args: self.populate_graph(composer, *args))
+        )
+        def populate_graph_with_composer(*args):
+            return self.populate_graph(composer, *args)
 
         sidebar_components = self.sidebar_components(composer)
 
@@ -147,7 +151,6 @@ class BaseStudio:
             [Input("explorer-selector", "value")],
         )
         def toggle_explorer(explorer):
-
             return [
                 dict(display="block" if option == explorer else "none")
                 for option in sidebar_components.keys()
@@ -155,49 +158,16 @@ class BaseStudio:
 
         @app.callback(
             Output("session", "data"),
-            [
-                Input("function-tree", "selected"),
-                Input("function-tree", "expanded"),
-                Input("result-processor", "value"),
-                Input("explorer-selector", "value"),
-            ],
+            [Input("function-tree", "selected")],
             [State("session", "data")],
         )
-        def on_save_to_session(
-            selected, expanded, result_processor, explorer_selector, data
-        ):
+        def on_save_to_session(selected, data):
             if selected and isinstance(selected[0], list):
                 selected = selected[0]
 
             data = data or {}
-            data.update(
-                {
-                    "selected": selected,
-                    "expanded": expanded,
-                    "result_processor": result_processor,
-                    "explorer_selector": explorer_selector,
-                }
-            )
+            data.update({"selected": selected})
             return data
-
-        @app.callback(
-            [
-                Output("function-tree", "expanded"),
-                Output("result-processor", "value"),
-                Output("explorer-selector", "value"),
-            ],
-            [Input("url", "pathname")],
-            [State("session", "data")],
-        )
-        def on_initial_load(path, data):
-
-            data = data or {}
-
-            return (
-                data.get("expanded", []),
-                data.get("result_processor", ""),
-                data.get("explorer_selector", "tree"),
-            )
 
         @app.callback(
             Output("function-tree", "selected"),
@@ -207,9 +177,9 @@ class BaseStudio:
         def update_tree_node(selected, url, data):
             data = data or {}
             if selected:
-                return [selected]
+                return selected
             else:
-                return data.get("selected", [])
+                return data.get("selected", "")
 
     def layout(self, composer):
         return Pane(
@@ -233,24 +203,16 @@ class BaseStudio:
             formatted = {}
             children = []
             if isinstance(value, str):
-                return {"title": key, "key": value}
+                return {"name": key, "key": value}
             else:
                 return {
-                    "title": key,
+                    "name": key,
                     "key": key,
-                    "selectable": False,
                     "children": [format_tree(k, v) for k, v in value.items()],
                 }
 
         return Scroll(
-            dash_treeview_antd.TreeView(
-                id=id,
-                multiple=False,
-                checkable=False,
-                selected=[],
-                expanded=["_root_"],
-                data=format_tree("_root_", tree),
-            )
+            DashTreebeard(id=id, data=format_tree("_root_", tree), persistence=True)
         )
 
     def function_graph(self, composer):
@@ -282,7 +244,7 @@ class BaseStudio:
                             type="number",
                             value=1,
                             min=0,
-                            persistence=True,
+                            persistence=1,
                             style=dict(border="1px solid lightgrey"),
                         ),
                     ]
@@ -298,14 +260,14 @@ class BaseStudio:
                                 {"label": "Links", "value": "links"},
                                 {"label": "Caching", "value": "caching"},
                             ],
-                            persistence=True,
+                            persistence=1,
                             labelStyle=dict(paddingLeft=10),
                             style=dict(display="inline"),
                         ),
                     ]
                 ),
                 Pane(
-                    DashInteractiveGraphviz(id="graphviz-viewer"),
+                    DashInteractiveGraphviz(id="graphviz-viewer", persistence=False),
                     style=dict(flexGrow=1),
                 ),
             ],
@@ -332,6 +294,7 @@ class BaseStudio:
             placeholder="e.g. result.query(....)",
             rows=5,
             style=dict(width="100%", border="none"),
+            persistence=1,
         )
 
     def sidebar(self, composer):
@@ -350,6 +313,7 @@ class BaseStudio:
                             options=explorer_options,
                             labelStyle=dict(paddingLeft=10),
                             value="",
+                            persistence=True,
                         ),
                     ],
                     style=dict(
@@ -398,7 +362,7 @@ class BaseStudio:
         )
 
         error_container = html.Div(id="error-container")
-        
+
         # TODO: Use this when Dash gets updated
         # result = dcc.Loading(
         #     Pane(Scroll(id="result-container"), style=dict(height="100%")),
@@ -406,7 +370,7 @@ class BaseStudio:
         # )
 
         result = Pane(Scroll(id="result-container"), style=dict(flexGrow=1))
-        
+
         return VStack(
             [status_bar, error_container, result],
             style=dict(flexGrow=1, flexShrink=1, height="100%"),
@@ -469,17 +433,10 @@ class BaseStudio:
         return function_name, None, None, html.Pre(source, style=dict(padding="0.5rem"))
 
     def populate_result_pane(
-        self,
-        composer,
-        renderers,
-        function_names,
-        result_processor,
-        result_or_definition,
+        self, composer, renderers, function_name, result_processor, result_or_definition
     ):
-        if not function_names or function_names[0] not in set(composer.dag().nodes()):
+        if function_name not in set(composer.dag().nodes()):
             return None, None, None, None
-
-        function_name = function_names[0]
 
         if result_or_definition == "result":
             return self.populate_result(
@@ -494,7 +451,7 @@ class BaseStudio:
         graph_display_options,
         graph_neighbourhood,
         graph_neighbourhood_size,
-        selected_nodes,
+        selected_node,
     ):
         graph_display_options = graph_display_options or []
         hide_parameters = "parameters" not in graph_display_options
@@ -508,8 +465,7 @@ class BaseStudio:
         if "all" in graph_neighbourhood:
             subgraph.update(G.nodes())
 
-        if selected_nodes and selected_nodes[0] in G:
-            selected_node = selected_nodes[0]
+        if selected_node in G:
 
             if "ancestors" in graph_neighbourhood:
                 subgraph.update(
@@ -561,7 +517,7 @@ class BaseStudio:
             hide_parameters=hide_parameters,
             flatten=flatten,
             expand_links=expand_links,
-            highlight=selected_nodes,
+            highlight=[selected_node],
             filter=subgraph,
             extra_node_styles=extra_node_styles,
         ).source
