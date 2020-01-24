@@ -125,14 +125,6 @@ version = "0.0.1"
 
 [[package]]
 category = "main"
-description = "Tree view component based on Ant Design widget."
-name = "dash-treeview-antd"
-optional = false
-python-versions = "*"
-version = "0.0.1"
-
-[[package]]
-category = "main"
 description = "Decorators for Humans"
 name = "decorator"
 optional = false
@@ -379,7 +371,7 @@ termcolor = ["termcolor"]
 watchdog = ["watchdog"]
 
 [metadata]
-content-hash = "8aba057aad8cf908e13e7346830770a6894ff2f15e5cba936a821291eb4e7d28"
+content-hash = "15d4f8e8ae86edc75151748cb2ab3fe8ade17c76250113bfaacefd52c5d3732c"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -422,9 +414,6 @@ dash-table = [
 ]
 dash-treebeard = [
     {file = "dash_treebeard-0.0.1.tar.gz", hash = "sha256:9412a3e612689422d17811ce758bdc4427fd62003ec79cb872f5601b946748df"},
-]
-dash-treeview-antd = [
-    {file = "dash_treeview_antd-0.0.1.tar.gz", hash = "sha256:3e55427a5e272d373dfac75510866bdb3df3c356b22fd7149f68559eeba1b9c3"},
 ]
 decorator = [
     {file = "decorator-4.4.1-py2.py3-none-any.whl", hash = "sha256:5d19b92a3c8f7f101c8dd86afd86b0f061a8ce4540ab8cd401fa2542756bce6d"},

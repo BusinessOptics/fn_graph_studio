@@ -1,11 +1,11 @@
 import base64
 import inspect
+from pathlib import Path
 
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
-import dash_treeview_antd
 import networkx as nx
 import pandas as pd
 import plotly.graph_objs
@@ -14,9 +14,15 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from dash_interactive_graphviz import DashInteractiveGraphviz
 from dash_split_pane import DashSplitPane
+from fn_graph.calculation import NodeInstruction, get_execution_instructions
 
 from dash_treebeard import DashTreebeard
-from fn_graph.calculation import NodeInstruction, get_execution_instructions
+
+# Load up embedded styles
+# We embed the styles directly in the template ofr portabilities sake
+# I feel there is likely a better way to do this but I cannot fnd it.
+with open(Path(__file__).parent / "styles.css") as f:
+    styles = f.read()
 
 
 def BasePane(default_style):
@@ -106,6 +112,33 @@ class BaseStudio:
         app.title = "Fn Compose Studio"
 
         app.layout = self.layout(composer)
+
+        app.index_string = (
+            """
+        <!DOCTYPE html>
+        <html>
+            <head>
+                {%metas%}
+                <title>{%title%}</title>
+                {%favicon%}
+                {%css%}
+                <style>
+                """
+            + styles
+            + """
+                </style>
+            </head>
+            <body>                
+                {%app_entry%}
+                <footer>
+                    {%config%}
+                    {%scripts%}
+                    {%renderer%}
+                </footer>                
+            </body>
+        </html>
+        """
+        )
 
         app.callback(
             [
