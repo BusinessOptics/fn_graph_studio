@@ -419,13 +419,15 @@ class BaseStudio:
 
         error_container = html.Div(id="error-container")
 
-        # TODO: Use this when Dash gets updated
-        # result = dcc.Loading(
-        #     Pane(Scroll(id="result-container"), style=dict(height="100%")),
-        #     style=dict(flexGrow=1)
-        # )
+        
+        result = dcc.Loading(
+            Pane(Scroll(id="result-container"), style=dict(height="100%")),
+            style=dict(flexGrow=1), 
+            className="result-loader",
+            color="#7dc242"            
+        )
 
-        result = Pane(Scroll(id="result-container"), style=dict(flexGrow=1))
+        #result = Pane(Scroll(id="result-container"), style=dict(flexGrow=1))
 
         return VStack(
             [status_bar, error_container, result],
