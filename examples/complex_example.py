@@ -15,7 +15,7 @@ from fn_graph_studio import run_studio
 logging.basicConfig(level=logging.DEBUG)
 
 default_model = Composer().update_parameters(internal_default_rate=0.1)
-house_pricing = Composer().update_parameters(price=1000)
+house_pricing = Composer().update_parameters(price=(int, 1000))
 loan_pricing = (
     Composer()
     .link(
@@ -31,6 +31,8 @@ f = (
     Composer()
     .update_namespaces(house_pricing=house_pricing, default_model=default_model)
     .update_from(loan_pricing)
+    .update_parameters(a__b__c__d=(int, 1), a__b__c__a=(str, "a"), a__b__x=(str, "x"))
+    .update_parameters(steve=1)
 )
 
-run_studio(f.development_cache(__name__))
+run_studio(f)

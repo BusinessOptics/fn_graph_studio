@@ -5,18 +5,21 @@ from random import choice, random
 import logging
 
 import pandas as pd
+import plotly.express as px
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 
 from fn_graph import Composer
 from fn_graph_studio import run_studio
 
+prices = [random() * 100_000 + 50000 for _ in range(10)]
+
 
 def get_car_prices():
     df = pd.DataFrame(
         dict(
             model=[choice(["corolla", "beetle", "ferrari"]) for _ in range(10)],
-            price=[random() * 100_000 + 50000 for _ in range(10)],
+            price=prices,
         )
     )
 
@@ -40,10 +43,13 @@ def get_savings_on_cheaper_cars(cheaper_cars, mean_car_price):
 
 
 def get_burger_savings(savings_on_cheaper_cars, price_of_a_burger):
-
     return savings_on_cheaper_cars.assign(
         burgers_saved=lambda df: df.savings / price_of_a_burger
     )
+
+
+def get_savings_histogram(burger_savings):
+    return px.histogram(burger_savings, x="burgers_saved")
 
 
 f = (
@@ -55,11 +61,12 @@ f = (
         get_mean_car_price,
         get_savings_on_cheaper_cars,
         get_burger_savings,
+        get_savings_histogram,
     )
-    .update_parameters(your_car_price=100_000, price_of_a_burger=100)
+    .update_parameters(your_car_price=(int, 100_000), price_of_a_burger=(float, 100))
 )
 
-run_studio(f.development_cache(__name__))
+run_studio(f)
 
 
 # %%

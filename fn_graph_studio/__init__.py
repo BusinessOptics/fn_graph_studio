@@ -1,22 +1,35 @@
 import base64
 import inspect
 from pathlib import Path
+import sys
 
 import dash
+import traceback
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_table
+
 import networkx as nx
-import pandas as pd
-import plotly.graph_objs
 from dash import Dash
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from dash_interactive_graphviz import DashInteractiveGraphviz
 from dash_split_pane import DashSplitPane
-from fn_graph.calculation import NodeInstruction, get_execution_instructions
-
 from dash_treebeard import DashTreebeard
+
+from fn_graph.calculation import (
+    NodeInstruction,
+    get_execution_instructions,
+    calculate_collect_exceptions,
+)
+from fn_graph.profiler import Profiler
+
+from .parameter_editor import (
+    parameter_widgets,
+    get_variable_parameter_keys,
+    get_variable_parameter_ids,
+)
+
+from .renderers import add_default_renders
 
 # Load up embedded styles
 # We embed the styles directly in the template ofr portabilities sake
@@ -73,39 +86,6 @@ VStack = BasePane(
 )
 
 
-def render_dataframe(result):
-    df = result.head(5000).reset_index()
-
-    return dash_table.DataTable(
-        id="table",
-        filter_action="native",
-        sort_action="native",
-        # fixed_rows={"headers": True, "data": 0},
-        sort_mode="multi",
-        columns=[{"name": i, "id": i} for i in df.columns],
-        # style_cell=dict(minWidth="100px"),
-        # style_table={"height": "100%", "overflowX": "scroll"},
-        data=df.to_dict("records"),
-    )
-
-
-def render_plotly(result):
-    return dcc.Graph(figure=result)
-
-
-def render_object(result):
-    return html.Pre(str(result), style=dict(paddingLeft="0.5rem", paddingTop="0.5rem"))
-
-
-def add_default_renders(result_renderers):
-    return [
-        *(result_renderers or {}).items(),
-        (pd.DataFrame, render_dataframe),
-        (plotly.graph_objs._figure.Figure, render_plotly),
-        (object, render_object),
-    ]
-
-
 class BaseStudio:
     def __init__(self, app, composer, result_renderers=None):
 
@@ -140,7 +120,10 @@ class BaseStudio:
         """
         )
 
-        app.callback(
+        parameter_keys = list(get_variable_parameter_keys(composer.parameters()))
+        parameter_ids = list(get_variable_parameter_ids(composer.parameters()))
+
+        @app.callback(
             [
                 Output(
                     component_id="result-function-name", component_property="children"
@@ -153,12 +136,24 @@ class BaseStudio:
                 Input(component_id="function-tree", component_property="selected"),
                 Input(component_id="result-processor", component_property="value"),
                 Input(component_id="result-or-definition", component_property="value"),
+                *[
+                    Input(component_id=id_, component_property="value")
+                    for id_ in parameter_ids
+                ],
             ],
-        )(
-            lambda *args: self.populate_result_pane(
-                composer, add_default_renders(result_renderers), *args
-            )
         )
+        def populate_result_with_composer(
+            function_name, result_processor, result_or_definition, *parameter_values
+        ):
+            return self.populate_result_pane(
+                composer,
+                add_default_renders(result_renderers),
+                parameter_keys,
+                function_name,
+                result_processor,
+                result_or_definition,
+                parameter_values,
+            )
 
         @app.callback(
             Output(component_id="graphviz-viewer", component_property="dot_source"),
@@ -169,10 +164,28 @@ class BaseStudio:
                     component_id="graph-neighbourhood-size", component_property="value"
                 ),
                 Input(component_id="function-tree", component_property="selected"),
+                *[
+                    Input(component_id=id_, component_property="value")
+                    for id_ in parameter_ids
+                ],
             ],
         )
-        def populate_graph_with_composer(*args):
-            return self.populate_graph(composer, *args)
+        def populate_graph_with_composer(
+            graph_display_options,
+            graph_neighbourhood,
+            graph_neighbourhood_size,
+            selected_node,
+            *parameter_values,
+        ):
+            return self.populate_graph(
+                composer,
+                graph_display_options,
+                graph_neighbourhood,
+                graph_neighbourhood_size,
+                selected_node,
+                parameter_keys,
+                parameter_values,
+            )
 
         sidebar_components = self.sidebar_components(composer)
 
@@ -307,6 +320,9 @@ class BaseStudio:
             style=dict(height="100%", width="100%", position="absolute", padding="5px"),
         )
 
+    def parameters(self, id, composer):
+        return parameter_widgets(composer.parameters())
+
     def sidebar_components(self, composer):
         return {
             "graph": Fill(
@@ -317,6 +333,11 @@ class BaseStudio:
             "tree": Fill(
                 self.function_tree("function-tree", composer),
                 id="function-tree-holder",
+                style=dict(display="none"),
+            ),
+            "parameters": Fill(
+                self.parameters("parameters", composer),
+                id="parameters-holder",
                 style=dict(display="none"),
             ),
         }
@@ -384,9 +405,11 @@ class BaseStudio:
                     options=[
                         {"label": "Result", "value": "result"},
                         {"label": "Definition", "value": "definition"},
+                        {"label": "Profiler", "value": "profiler"},
                     ],
                     value="result",
                     persistence=True,
+                    inputStyle=dict(marginLeft="1rem"),
                 ),
             ],
             style=dict(
@@ -418,10 +441,66 @@ class BaseStudio:
                 return render(result)
         return "Rendering error - No matching renderer"
 
+    def render_exception(self, exception_info):
+
+        etype, evalue, etraceback, function_key = exception_info
+
+        lines = []
+        for frame in traceback.extract_tb(etraceback)[1:]:
+            lines.extend(
+                [
+                    html.Div(
+                        [
+                            f"{frame.filename}, line {frame.lineno}, in ",
+                            html.Span(frame.name, style=dict(fontWeight="bold")),
+                        ],
+                        style=dict(paddingBottom="2px"),
+                    ),
+                    html.Pre(
+                        frame.line,
+                        style=dict(
+                            borderRadius="3px",
+                            border="1px solid #ac9",
+                            padding="5px",
+                            backgroundColor="#eeffcc",
+                            color="#333333",
+                            lineHeight="120%",
+                        ),
+                    ),
+                ]
+            )
+
+        return html.Div(
+            [
+                html.H2(["Exception when calculating ", html.Strong(function_key)]),
+                html.Div(
+                    repr(evalue),
+                    style=dict(
+                        color="red",
+                        paddingBottom="1rem",
+                        fontWeight="bold",
+                        fontSize="1.2rem",
+                    ),
+                ),
+                html.Div(lines),
+            ],
+            style=dict(padding="0.5rem"),
+        )
+
     def populate_result(
-        self, composer, renderers, function_name, result_processor_value
+        self, composer, renderers, function_name, result_processor_value, parameters
     ):
-        result = composer.calculate([function_name])[function_name]
+
+        composer = composer.update_parameters(**parameters)
+
+        results, exception_info = calculate_collect_exceptions(
+            composer, [function_name]
+        )
+
+        if exception_info:
+            return (function_name, None, None, self.render_exception(exception_info))
+
+        result = results[function_name]
 
         error = None
         if result_processor_value:
@@ -465,18 +544,126 @@ class BaseStudio:
 
         return function_name, None, None, html.Pre(source, style=dict(padding="0.5rem"))
 
+    def populate_profiler(self, composer, renderers, function_name, parameters):
+
+        composer = composer.update_parameters(**parameters)
+
+        profiler = Profiler()
+        results, exception_info = calculate_collect_exceptions(
+            composer, [function_name], progress_callback=profiler
+        )
+
+        profile = profiler.results()
+
+        green = "#7dc242"
+        
+
+        highest = max(
+            [
+                *[
+                    metrics["total"]
+                    for metrics in [
+                        *profile["functions"].values(),
+                        *profile["startup"].values(),
+                    ]
+                ]
+            ]
+        )
+
+        total = sum(
+            [
+                *[
+                    metrics["total"]
+                    for metrics in [
+                        *profile["functions"].values(),
+                        *profile["startup"].values(),
+                    ]
+                ]
+            ]
+        )
+        
+        def plot_bars(*metrics):
+            return [
+                html.Div(
+                    style=dict(
+                        width=f"{value}%",
+                        display="inline-block",
+                        background=color,
+                        height="1rem",
+                    ),
+                    title=f"{key} = {total:.2f}%",
+                )
+                for key, value, total, color in metrics
+            ]
+        
+        def profile_section(section, bar_description):
+            return [
+                html.Tr(
+                    [
+                        html.Th(k, style=dict(width="20%",padding="3px")),
+                        html.Td(
+                            plot_bars(
+                                *[
+                                    (key, metrics[key] / highest * 90,metrics[key] / total * 100, color)
+                                    for key, color in bar_description
+                                ]
+                            ), style=dict(padding="3px", )
+                        ),
+                    ],style=dict(border="1px solid white", background= "#eee" if i%2 == 0 else None)
+                )
+                for i, (k, metrics) in enumerate(section.items())
+            ]
+
+        content = html.Div(html.Table(
+            html.Tbody(
+                profile_section(profile["startup"], [("preparation", "lightgrey")])
+                +[html.Tr(html.Td(style=dict(height="2rem")))]
+                + profile_section(
+                    profile["functions"],
+                    [
+                        ("overhead", "lightgrey"),
+                        ("cache_retrieval", "grey"),
+                        ("execution", green),
+                        ("cache_store", "grey"),
+                    ],
+                )
+            ),
+            style=dict(width="100%",  boxSizing="border-box"),
+        ), style=dict(margin="0.5rem",))
+
+        return (function_name, None, None, content)
+
     def populate_result_pane(
-        self, composer, renderers, function_name, result_processor, result_or_definition
+        self,
+        composer,
+        renderers,
+        parameter_keys,
+        function_name,
+        result_processor,
+        result_or_definition,
+        parameter_values,
     ):
+
         if function_name not in set(composer.dag().nodes()):
             return None, None, None, None
 
         if result_or_definition == "result":
             return self.populate_result(
-                composer, renderers, function_name, result_processor
+                composer,
+                renderers,
+                function_name,
+                result_processor,
+                dict(zip(parameter_keys, parameter_values)),
             )
-        else:
+        elif result_or_definition == "definition":
             return self.populate_definition(composer, function_name)
+        else:
+            return self.populate_profiler(
+                composer,
+                renderers,
+                function_name,
+                dict(zip(parameter_keys, parameter_values)),
+            )
 
     def populate_graph(
         self,
@@ -485,12 +672,18 @@ class BaseStudio:
         graph_neighbourhood,
         graph_neighbourhood_size,
         selected_node,
+        parameter_keys,
+        parameter_values,
     ):
         graph_display_options = graph_display_options or []
         hide_parameters = "parameters" not in graph_display_options
         flatten = "flatten" in graph_display_options
         caching = "caching" in graph_display_options
         expand_links = "links" in graph_display_options
+
+        composer = composer.update_parameters(
+            **dict(zip(parameter_keys, parameter_values))
+        )
 
         G = composer.dag()
         subgraph = set()
