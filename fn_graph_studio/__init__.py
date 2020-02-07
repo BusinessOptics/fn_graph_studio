@@ -419,15 +419,12 @@ class BaseStudio:
 
         error_container = html.Div(id="error-container")
 
-        
         result = dcc.Loading(
             Pane(Scroll(id="result-container"), style=dict(height="100%")),
-            style=dict(flexGrow=1), 
+            style=dict(flexGrow=1),
             className="result-loader",
-            color="#7dc242"            
+            color="#7dc242",
         )
-
-        #result = Pane(Scroll(id="result-container"), style=dict(flexGrow=1))
 
         return VStack(
             [status_bar, error_container, result],
@@ -558,7 +555,6 @@ class BaseStudio:
         profile = profiler.results()
 
         green = "#7dc242"
-        
 
         highest = max(
             [
@@ -583,7 +579,7 @@ class BaseStudio:
                 ]
             ]
         )
-        
+
         def plot_bars(*metrics):
             return [
                 html.Div(
@@ -597,41 +593,54 @@ class BaseStudio:
                 )
                 for key, value, total, color in metrics
             ]
-        
+
         def profile_section(section, bar_description):
             return [
                 html.Tr(
                     [
-                        html.Th(k, style=dict(width="20%",padding="3px")),
+                        html.Th(k, style=dict(width="20%", padding="3px")),
                         html.Td(
                             plot_bars(
                                 *[
-                                    (key, metrics[key] / highest * 90,metrics[key] / total * 100, color)
+                                    (
+                                        key,
+                                        metrics[key] / highest * 90,
+                                        metrics[key] / total * 100,
+                                        color,
+                                    )
                                     for key, color in bar_description
                                 ]
-                            ), style=dict(padding="3px", )
+                            ),
+                            style=dict(padding="3px"),
                         ),
-                    ],style=dict(border="1px solid white", background= "#eee" if i%2 == 0 else None)
+                    ],
+                    style=dict(
+                        border="1px solid white",
+                        background="#eee" if i % 2 == 0 else None,
+                    ),
                 )
                 for i, (k, metrics) in enumerate(section.items())
             ]
 
-        content = html.Div(html.Table(
-            html.Tbody(
-                profile_section(profile["startup"], [("preparation", "lightgrey")])
-                +[html.Tr(html.Td(style=dict(height="2rem")))]
-                + profile_section(
-                    profile["functions"],
-                    [
-                        ("overhead", "lightgrey"),
-                        ("cache_retrieval", "grey"),
-                        ("execution", green),
-                        ("cache_store", "grey"),
-                    ],
-                )
+        content = html.Div(
+            html.Table(
+                html.Tbody(
+                    profile_section(profile["startup"], [("preparation", "lightgrey")])
+                    + [html.Tr(html.Td(style=dict(height="2rem")))]
+                    + profile_section(
+                        profile["functions"],
+                        [
+                            ("overhead", "lightgrey"),
+                            ("cache_retrieval", "grey"),
+                            ("execution", green),
+                            ("cache_store", "grey"),
+                        ],
+                    )
+                ),
+                style=dict(width="100%", boxSizing="border-box"),
             ),
-            style=dict(width="100%",  boxSizing="border-box"),
-        ), style=dict(margin="0.5rem",))
+            style=dict(margin="0.5rem"),
+        )
 
         return (function_name, None, None, content)
 

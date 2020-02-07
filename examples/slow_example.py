@@ -17,7 +17,7 @@ f = (
         c=lambda b: b.assign(y=np.sin(b.x)),
         d=lambda c, a: a.merge(c, on="x", how="outer"),
     )
-    .update_parameters(size=100000)
+    .update_parameters(size=100000.0)
 )
 
 run_studio(f)

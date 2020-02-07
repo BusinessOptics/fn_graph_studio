@@ -14,12 +14,12 @@ dash = "^1.7"
 dash_core_components = "^1.6"
 dash_split_pane = "^1.0"
 dash_interactive_graphviz = "^0.1.0"
-fn_graph = "^0.1.4"
+fn_graph = "^0.1.5"
 dash-treebeard = "^0.0.1"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^18.3-alpha.0", allow-prereleases = true}
-fn_graph = "^0.1.4"
+fn_graph = "^0.1.5"
 fn-graph = {path = "../fn_graph"}
 
 [build-system]
