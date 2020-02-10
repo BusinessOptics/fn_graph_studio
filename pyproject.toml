@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fn_graph_studio"
-version = "0.2.5"
+version = "0.2.6"
 description = "A web based explorer for fn_graph function composers"
 authors = ["James Saunders <james@businessoptics.biz>"]
 license = "MIT"
@@ -19,8 +19,8 @@ dash-treebeard = "^0.0.1"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^18.3-alpha.0", allow-prereleases = true}
-fn_graph = "^0.1.5"
-fn-graph = {path = "../fn_graph"}
+#fn_graph = "^0.1.5"
+#fn-graph = {path = "../fn_graph"}
 
 [build-system]
 requires = ["poetry>=0.12"]
