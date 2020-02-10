@@ -70,7 +70,6 @@ def parameter_widgets(parameters):
         root = tree
 
         for part in parts[:-1]:
-            print(part)
             root = root[part]
         root[parts[-1]] = component
 
