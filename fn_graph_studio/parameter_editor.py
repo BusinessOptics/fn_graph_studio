@@ -5,7 +5,12 @@ import dash_html_components as html
 
 
 def get_parameter_attrs(key, type_, value):
+
+    if issubclass(type_, bool):
+        return None
+
     parameter_attrs = {
+        bool: dict(type="text"),
         float: dict(type="number"),
         int: dict(type="number"),
         str: dict(type="text"),
@@ -19,6 +24,16 @@ def get_parameter_attrs(key, type_, value):
 
 
 def create_input(key, type_, value):
+
+    if issubclass(type_, bool):
+        return dcc.RadioItems(
+            options=[
+                {"label": "True", "value": "True"},
+                {"label": "False", "value": "False"},
+            ],
+            value=str(value),
+        )
+
     attrs = get_parameter_attrs(key, type_, value)
 
     if attrs:
@@ -70,7 +85,6 @@ def parameter_widgets(parameters):
         root = tree
 
         for part in parts[:-1]:
-            print(part)
             root = root[part]
         root[parts[-1]] = component
 

@@ -31,6 +31,10 @@ from .parameter_editor import (
 
 from .renderers import add_default_renders
 
+import pandas as pd
+import numpy as np
+import plotly.express as px
+
 # Load up embedded styles
 # We embed the styles directly in the template ofr portabilities sake
 # I feel there is likely a better way to do this but I cannot fnd it.
@@ -198,7 +202,13 @@ class BaseStudio:
         )
         def toggle_explorer(explorer):
             return [
-                dict(display="block" if option == explorer else "none")
+                dict(
+                    height="100%",
+                    width="100%",
+                    position="absolute",
+                    overflow="auto",
+                    display="block" if option == explorer else "none",
+                )
                 for option in sidebar_components.keys()
             ]
 
@@ -432,7 +442,10 @@ class BaseStudio:
         )
 
     def process_result(self, result, result_processor_value):
-        return eval(result_processor_value, globals(), dict(result=result))
+        
+        return eval(
+            result_processor_value, globals(), dict(result=result, px=px, pd=pd, np=np)
+        )
 
     def render_result(self, renderers, result):
         for typ, render in renderers:
@@ -490,7 +503,7 @@ class BaseStudio:
         self, composer, renderers, function_name, result_processor_value, parameters
     ):
 
-        composer = composer.update_parameters(**parameters)
+        composer = self.update_composer_parameters(composer, parameters)
 
         results, exception_info = calculate_collect_exceptions(
             composer, [function_name]
@@ -545,7 +558,7 @@ class BaseStudio:
 
     def populate_profiler(self, composer, renderers, function_name, parameters):
 
-        composer = composer.update_parameters(**parameters)
+        composer = self.update_composer_parameters(composer, parameters)
 
         profiler = Profiler()
         results, exception_info = calculate_collect_exceptions(
@@ -676,6 +689,20 @@ class BaseStudio:
                 dict(zip(parameter_keys, parameter_values)),
             )
 
+    def update_composer_parameters(self, composer, parameters):
+        def smartish_cast(key, type_, value):
+            if issubclass(type_, bool) and isinstance(value, str):
+                return value.lower() == "t"
+
+            return value
+
+        parameters = {
+            key: smartish_cast(key, type_, parameters[key])
+            for key, (type_, _) in composer.parameters().items()
+            if key in parameters
+        }
+        return composer.update_parameters(**parameters)
+
     def populate_graph(
         self,
         composer,
@@ -692,8 +719,8 @@ class BaseStudio:
         caching = "caching" in graph_display_options
         expand_links = "links" in graph_display_options
 
-        composer = composer.update_parameters(
-            **dict(zip(parameter_keys, parameter_values))
+        composer = self.update_composer_parameters(
+            composer, dict(zip(parameter_keys, parameter_values))
         )
 
         G = composer.dag()
@@ -778,6 +805,7 @@ class ExternalStudio(BaseStudio):
             placeholder='Enter a query string.\n\nYou can use full pandas query strings.\ne.g.: merchant_id == "ABC"',
             rows=5,
             style=dict(width="100%", border="none"),
+            debounce=True,
         )
 
     def process_result(self, result, value):
