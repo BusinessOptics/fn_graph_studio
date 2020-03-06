@@ -29,9 +29,9 @@ def render_object(result):
     return html.Pre(str(result), style=dict(paddingLeft="0.5rem", paddingTop="0.5rem"))
 
 
-def add_default_renders(result_renderers):
+def add_default_renderers(renderers):
     return [
-        *(result_renderers or {}).items(),
+        *(renderers or {}).items(),
         (pd.DataFrame, render_dataframe),
         (plotly.graph_objs._figure.Figure, render_plotly),
         (object, render_object),
