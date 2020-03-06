@@ -126,10 +126,6 @@ dmypy.json
 # VSCode
 .vscode
 
-# CSS
-*.css
-*.css.map
-
 # Data folder
 data/
 test_data/
