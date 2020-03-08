@@ -1,21 +1,15 @@
-import base64
 import inspect
-from pathlib import Path
-import sys
-
-import dash
 import traceback
+from pathlib import Path
+
 import dash_core_components as dcc
 import dash_html_components as html
-
 import networkx as nx
 from dash import Dash
 from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
 from dash_interactive_graphviz import DashInteractiveGraphviz
 from dash_split_pane import DashSplitPane
 from dash_treebeard import DashTreebeard
-
 from fn_graph.calculation import (
     NodeInstruction,
     get_execution_instructions,
@@ -23,13 +17,14 @@ from fn_graph.calculation import (
 )
 from fn_graph.profiler import Profiler
 
+__package__ = "fn_graph_studio"
+
 from .parameter_editor import (
     parameter_widgets,
     get_variable_parameter_keys,
     get_variable_parameter_ids,
 )
-
-from .renderers import add_default_renders
+from .result_renderers import add_default_renderers
 
 import pandas as pd
 import numpy as np
@@ -43,8 +38,8 @@ with open(Path(__file__).parent / "styles.css") as f:
 
 
 def BasePane(default_style):
-    def wrapper(*args, style=dict(), **kwargs):
-        return html.Div(*args, style={**default_style, **style}, **kwargs)
+    def wrapper(*args, style=None, **kwargs):
+        return html.Div(*args, style={**default_style, **(style or {})}, **kwargs)
 
     return wrapper
 
@@ -91,7 +86,7 @@ VStack = BasePane(
 
 
 class BaseStudio:
-    def __init__(self, app, composer, result_renderers=None):
+    def __init__(self, app, composer, renderers=None):
 
         app.title = "Fn Compose Studio"
 
@@ -151,7 +146,7 @@ class BaseStudio:
         ):
             return self.populate_result_pane(
                 composer,
-                add_default_renders(result_renderers),
+                add_default_renderers(renderers),
                 parameter_keys,
                 function_name,
                 result_processor,
@@ -230,7 +225,7 @@ class BaseStudio:
             [Input("graphviz-viewer", "selected"), Input("url", "pathname")],
             [State("session", "data")],
         )
-        def update_tree_node(selected, url, data):
+        def update_tree_node(selected, _url, data):
             data = data or {}
             if selected:
                 return selected
@@ -251,13 +246,10 @@ class BaseStudio:
             style=dict(width="100%", height="100%", position="absolute"),
         )
 
-    def function_tree(self, id, composer):
-        functions = [dict(label=node, value=node) for node in composer.dag().nodes()]
+    def function_tree(self, component_id, composer):
         tree = composer._build_name_tree()
 
         def format_tree(key, value):
-            formatted = {}
-            children = []
             if isinstance(value, str):
                 return {"name": key, "key": value}
             else:
@@ -268,10 +260,10 @@ class BaseStudio:
                 }
 
         return Scroll(
-            DashTreebeard(id=id, data=format_tree("_root_", tree), persistence=True)
+            DashTreebeard(id=component_id, data=format_tree("_root_", tree), persistence=True)
         )
 
-    def function_graph(self, composer):
+    def function_graph(self):
         return VStack(
             [
                 html.Div(
@@ -330,13 +322,13 @@ class BaseStudio:
             style=dict(height="100%", width="100%", position="absolute", padding="5px"),
         )
 
-    def parameters(self, id, composer):
+    def parameters(self, composer):
         return parameter_widgets(composer.parameters())
 
     def sidebar_components(self, composer):
         return {
             "graph": Fill(
-                self.function_graph(composer),
+                self.function_graph(),
                 id="function-graph-holder",
                 style=dict(display="none"),
             ),
@@ -346,7 +338,7 @@ class BaseStudio:
                 style=dict(display="none"),
             ),
             "parameters": Fill(
-                self.parameters("parameters", composer),
+                self.parameters(composer),
                 id="parameters-holder",
                 style=dict(display="none"),
             ),
@@ -546,12 +538,12 @@ class BaseStudio:
         source = composer.get_source(function_name)
         return function_name, None, None, html.Pre(source, style=dict(padding="0.5rem"))
 
-    def populate_profiler(self, composer, renderers, function_name, parameters):
+    def populate_profiler(self, composer, function_name, parameters):
 
         composer = self.update_composer_parameters(composer, parameters)
 
         profiler = Profiler()
-        results, exception_info = calculate_collect_exceptions(
+        calculate_collect_exceptions(
             composer, [function_name], progress_callback=profiler
         )
 
@@ -559,29 +551,16 @@ class BaseStudio:
 
         green = "#7dc242"
 
-        highest = max(
-            [
-                *[
-                    metrics["total"]
-                    for metrics in [
-                        *profile["functions"].values(),
-                        *profile["startup"].values(),
-                    ]
-                ]
+        totals = [
+            metrics["total"]
+            for metrics in [
+                *profile["functions"].values(),
+                *profile["startup"].values(),
             ]
-        )
+        ]
 
-        total = sum(
-            [
-                *[
-                    metrics["total"]
-                    for metrics in [
-                        *profile["functions"].values(),
-                        *profile["startup"].values(),
-                    ]
-                ]
-            ]
-        )
+        highest = max(totals)
+        total = sum(totals)
 
         def plot_bars(*metrics):
             return [
@@ -592,9 +571,9 @@ class BaseStudio:
                         background=color,
                         height="1rem",
                     ),
-                    title=f"{key} = {total:.2f}%",
+                    title=f"{key} = {metric_total:.2f}%",
                 )
-                for key, value, total, color in metrics
+                for key, value, metric_total, color in metrics
             ]
 
         def profile_section(section, bar_description):
@@ -674,20 +653,19 @@ class BaseStudio:
         else:
             return self.populate_profiler(
                 composer,
-                renderers,
                 function_name,
                 dict(zip(parameter_keys, parameter_values)),
             )
 
     def update_composer_parameters(self, composer, parameters):
-        def smartish_cast(key, type_, value):
+        def smartish_cast(type_, value):
             if issubclass(type_, bool) and isinstance(value, str):
                 return value.lower() == "t"
 
             return value
 
         parameters = {
-            key: smartish_cast(key, type_, parameters[key])
+            key: smartish_cast(type_, parameters[key])
             for key, (type_, _) in composer.parameters().items()
             if key in parameters
         }
@@ -783,7 +761,7 @@ class Studio(BaseStudio):
 
 class ExternalStudio(BaseStudio):
     """
-    This studio is mean to be suitable for release on the public internet. 
+    This studio is mean to be suitable for release on the public internet.
     It does not allow for code injection (We think).
 
     Use with Caution, this is a WIP.
@@ -795,7 +773,6 @@ class ExternalStudio(BaseStudio):
             placeholder='Enter a query string.\n\nYou can use full pandas query strings.\ne.g.: merchant_id == "ABC"',
             rows=5,
             style=dict(width="100%", border="none"),
-            debounce=True,
         )
 
     def process_result(self, result, value):
@@ -811,15 +788,20 @@ def run_external_studio(composer, **kwargs):
     """
     Run an external studio for the given composer.
     """
-    app = Dash(__name__)
-    ExternalStudio(app, composer, **kwargs)
-    app.run_server(debug=True)
+    _run_studio(ExternalStudio, composer, **kwargs)
 
 
 def run_studio(composer, **kwargs):
     """
     Run a development studio for the given composer.
     """
+    _run_studio(Studio, composer, **kwargs)
+
+
+def _run_studio(cls, composer, **kwargs):
+    """
+    Run a studio of type cls for the given composer.
+    """
     app = Dash(__name__)
-    Studio(app, composer, **kwargs)
+    cls(app, composer, **kwargs)
     app.run_server(debug=True)

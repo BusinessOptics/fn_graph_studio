@@ -4,7 +4,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 
 
-def get_parameter_attrs(key, type_, value):
+def get_parameter_attrs(key, type_):
 
     if issubclass(type_, bool):
         return None
@@ -34,7 +34,7 @@ def create_input(key, type_, value):
             value=str(value),
         )
 
-    attrs = get_parameter_attrs(key, type_, value)
+    attrs = get_parameter_attrs(key, type_)
 
     if attrs:
         return dcc.Input(
@@ -52,14 +52,14 @@ def create_input(key, type_, value):
 
 def get_variable_parameter_keys(parameters):
     for key, (type_, value) in parameters.items():
-        attrs = get_parameter_attrs(key, type_, value)
+        attrs = get_parameter_attrs(key, type_)
         if attrs:
             yield key
 
 
 def get_variable_parameter_ids(parameters):
     for key, (type_, value) in parameters.items():
-        attrs = get_parameter_attrs(key, type_, value)
+        attrs = get_parameter_attrs(key, type_)
         if attrs:
             yield attrs["id"]
 
