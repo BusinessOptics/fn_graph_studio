@@ -45,7 +45,7 @@ def create_input(key, type_, value):
             style=dict(width="100%", border="1px solid lightgrey"),
         )
     else:
-        return html.Div(
+        return html.Pre(
             str(value), style=dict(border="1px solid lightgrey", color="lightgrey")
         )
 

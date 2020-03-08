@@ -442,7 +442,7 @@ class BaseStudio:
         )
 
     def process_result(self, result, result_processor_value):
-        
+
         return eval(
             result_processor_value, globals(), dict(result=result, px=px, pd=pd, np=np)
         )
@@ -543,17 +543,7 @@ class BaseStudio:
         )
 
     def populate_definition(self, composer, function_name):
-        fn = composer.raw_function(function_name)
-        is_parameter = function_name in composer._parameters
-
-        if is_parameter:
-            source = f"{function_name} = lambda: {composer._parameters[function_name]}"
-        elif getattr(fn, "_is_fn_graph_link", False):
-            parameter = list(inspect.signature(fn).parameters.keys())[0]
-            source = f"{function_name} = lambda {parameter}: {parameter}"
-        else:
-            source = inspect.getsource(fn)
-
+        source = composer.get_source(function_name)
         return function_name, None, None, html.Pre(source, style=dict(padding="0.5rem"))
 
     def populate_profiler(self, composer, renderers, function_name, parameters):
