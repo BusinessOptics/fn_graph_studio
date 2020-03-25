@@ -8,7 +8,7 @@ include = ["fn_graph_studio/styles.css"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pandas = "^0.25.3"
+pandas = ">=0.25.3"
 plotly = "^4.4"
 dash = "^1.7"
 dash_core_components = "^1.6"
@@ -16,7 +16,7 @@ dash_split_pane = "^1.0"
 dash_interactive_graphviz = "^0.1.0"
 fn_graph = ">=0.5.0"
 dash-treebeard = "^0.0.1"
-sh = "^1.12.14"
+sh = "^1.12"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^18.3-alpha.0", allow-prereleases = true}
