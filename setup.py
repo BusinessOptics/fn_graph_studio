@@ -14,7 +14,7 @@ readme = ''
 setup(
     long_description=readme,
     name='fn_graph_studio',
-    version='0.2.10',
+    version='0.2.11',
     description='A web based explorer for fn_graph function composers',
     python_requires='==3.*,>=3.7.0',
     author='James Saunders',
@@ -32,8 +32,8 @@ setup(
         'dash==1.*,>=1.7.0', 'dash-core-components==1.*,>=1.6.0',
         'dash-interactive-graphviz==0.*,>=0.1.0',
         'dash-split-pane==1.*,>=1.0.0', 'dash-treebeard==0.*,>=0.0.1',
-        'fn-graph>=0.5.0', 'pandas==0.*,>=0.25.3', 'plotly==4.*,>=4.4.0',
-        'sh==1.*,>=1.12.14'
+        'fn-graph>=0.5.0', 'pandas>=0.25.3', 'plotly==4.*,>=4.4.0',
+        'sh==1.*,>=1.12.0'
     ],
     extras_require={"dev": ["black==18.*,>=18.3.0"]},
 )
