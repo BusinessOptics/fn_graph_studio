@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fn_graph_studio"
-version = "0.3.2"
+version = "0.3.1"
 description = "A web based explorer for fn_graph function composers"
 authors = ["James Saunders <james@businessoptics.biz>"]
 license = "MIT"
@@ -30,7 +30,7 @@ matplotlib = "^3.2.1"
 black = {version = "^18.3-alpha.0", allow-prereleases = true}
 
 [tool.poetry.scripts]
-run_graph_studio = "fn_graph_studio.cli:cli"
+fn_graph_studio = "fn_graph_studio.cli:cli"
 
 [tool.dephell.main]
 from = {format = "poetry", path = "pyproject.toml"}
