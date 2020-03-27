@@ -2,14 +2,11 @@
 import sys
 from pathlib import Path
 from random import choice, random
-import logging
 
 import pandas as pd
 import plotly.express as px
-
-sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
-
 from fn_graph import Composer
+
 from fn_graph_studio import run_studio
 
 prices = [random() * 100_000 + 50000 for _ in range(10)]
@@ -65,8 +62,3 @@ f = (
     )
     .update_parameters(your_car_price=(int, 100_000), price_of_a_burger=(float, 100))
 )
-
-run_studio(f)
-
-
-# %%

@@ -3,16 +3,11 @@
 import sys
 from pathlib import Path
 from random import choice, random
-import logging
 
 import pandas as pd
-
-sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
-
 from fn_graph import Composer
-from fn_graph_studio import run_studio
 
-logging.basicConfig(level=logging.DEBUG)
+from fn_graph_studio import run_studio
 
 default_model = Composer().update_parameters(internal_default_rate=0.1)
 house_pricing = Composer().update_parameters(price=(int, 1000))
@@ -34,5 +29,3 @@ f = (
     .update_parameters(a__b__c__d=(int, 1), a__b__c__a=(str, "a"), a__b__x=(str, "x"))
     .update_parameters(steve=1)
 )
-
-run_studio(f)
