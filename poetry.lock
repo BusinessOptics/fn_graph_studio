@@ -487,7 +487,7 @@ dev = ["pytest", "coverage", "tox", "sphinx", "pallets-sphinx-themes", "sphinx-i
 watchdog = ["watchdog"]
 
 [metadata]
-content-hash = "7a9c82f2671dde6900e1aaf3b0d05b5672ec0f32edefd39f42e898bb2a8fd48c"
+content-hash = "6a565583bcc526442357c54b533e40f97838cc0a15f2f0451dad4a1b56cb5e7f"
 python-versions = "^3.7"
 
 [metadata.files]

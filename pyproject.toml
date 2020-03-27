@@ -4,7 +4,11 @@ version = "0.3.0"
 description = "A web based explorer for fn_graph function composers"
 authors = ["James Saunders <james@businessoptics.biz>"]
 license = "MIT"
+readme = "README.md"
 include = ["fn_graph_studio/styles.css"]
+# documentation="https://fn-graph.readthedocs.io/"
+repository="https://github.com/BusinessOptics/fn_graph_studio"
+homepage="https://github.com/BusinessOptics/fn_graph_studio"
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -20,14 +24,13 @@ sh = "^1.0"
 dash-dangerously-set-inner-html = "^0.0.2"
 seaborn = "^0.10.0"
 statsmodels = "^0.11.1"
-
+matplotlib = "^3.2.1"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^18.3-alpha.0", allow-prereleases = true}
-matplotlib = "^3.2.1"
 
 [tool.poetry.scripts]
-run_graph_studio = "fn_graph_studio.cli:run_studio_command"
+run_graph_studio = "fn_graph_studio.cli:cli"
 
 [tool.dephell.main]
 from = {format = "poetry", path = "pyproject.toml"}
