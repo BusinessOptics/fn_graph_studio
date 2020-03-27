@@ -32,7 +32,7 @@ setup(
     author_email='james@businessoptics.biz',
     license='MIT',
     entry_points={
-        "console_scripts": ["run_graph_studio = fn_graph_studio.cli:cli"]
+        "console_scripts": ["fn_graph_studio = fn_graph_studio.cli:cli"]
     },
     packages=['fn_graph_studio', 'fn_graph_studio.examples'],
     package_dir={"": "."},
