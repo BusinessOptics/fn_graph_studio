@@ -208,7 +208,7 @@ class BaseStudio:
                 matching_nodes = [
                     key
                     for key in composer.functions().keys()
-                    if node_name_filter.lower() in key.lower()
+                    if node_name_filter.strip().lower() in key.lower()
                 ]
                 tree = composer.subgraph(matching_nodes)._build_name_tree()
             else:
@@ -805,7 +805,9 @@ class BaseStudio:
 
         if node_name_filter:
             subgraph = {
-                node for node in subgraph if node_name_filter.lower() in node.lower()
+                node
+                for node in subgraph
+                if node_name_filter.strip().lower() in node.lower()
             }
 
         if caching:
