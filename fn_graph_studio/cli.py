@@ -84,6 +84,7 @@ EXAMPLES = {
     "broken": "An example with a broken composer",
     "plotting": "Examples of various different supported plotting libraries",
     "caching": "An example showing caching behaviour",
+    "machine_learning": "A simple machine learing example based",
 }
 
 EXAMPLE_STRING = "\n".join(
@@ -113,6 +114,9 @@ def example(example, clear):
 
     caching:
         An example showing caching behavior
+
+    machine_learning:
+        A simple machine learing example based
 
     EXAMPLE the name of the example to run, from the above list
     """
