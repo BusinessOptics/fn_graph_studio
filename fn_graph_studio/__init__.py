@@ -2,9 +2,14 @@ import inspect
 import traceback
 from pathlib import Path
 
+import dash_ace
 import dash_core_components as dcc
+import dash_dangerously_set_inner_html
 import dash_html_components as html
 import networkx as nx
+import numpy as np
+import pandas as pd
+import plotly.express as px
 from dash import Dash
 from dash.dependencies import Input, Output, State
 from dash_interactive_graphviz import DashInteractiveGraphviz
@@ -12,29 +17,32 @@ from dash_split_pane import DashSplitPane
 from dash_treebeard import DashTreebeard
 from fn_graph.calculation import (
     NodeInstruction,
-    get_execution_instructions,
     calculate_collect_exceptions,
+    get_execution_instructions,
 )
 from fn_graph.profiler import Profiler
-
-__package__ = "fn_graph_studio"
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import PythonLexer
 
 from .parameter_editor import (
-    parameter_widgets,
-    get_variable_parameter_keys,
     get_variable_parameter_ids,
+    get_variable_parameter_keys,
+    parameter_widgets,
 )
 from .result_renderers import add_default_renderers
 
-import pandas as pd
-import numpy as np
-import plotly.express as px
+__package__ = "fn_graph_studio"
+
 
 # Load up embedded styles
 # We embed the styles directly in the template ofr portabilities sake
 # I feel there is likely a better way to do this but I cannot fnd it.
 with open(Path(__file__).parent / "styles.css") as f:
     styles = f.read()
+
+with open(Path(__file__).parent / "highlight.css") as f:
+    highlight_styles = f.read()
 
 
 def BasePane(default_style):
@@ -104,6 +112,8 @@ class BaseStudio:
                 <style>
                 """
             + styles
+            + "\n\n"
+            + highlight_styles
             + """
                 </style>
             </head>
@@ -368,12 +378,19 @@ class BaseStudio:
         }
 
     def result_processor(self):
-        return dcc.Textarea(
+        return dash_ace.DashAceEditor(
             id="result-processor",
+            value="",
+            theme="github",
+            mode="python",
+            tabSize=2,
             placeholder="e.g. result.query(....)",
-            rows=5,
-            style=dict(width="100%", border="none"),
-            persistence=1,
+            maxLines=10,
+            minLines=5,
+            showGutter=False,
+            persistence=True,
+            highlightActiveLine=False,
+            debounceChangePeriod=500
         )
 
     def sidebar(self, composer):
@@ -545,7 +562,7 @@ class BaseStudio:
         result = results[function_name]
 
         error = None
-        if result_processor_value:
+        if result_processor_value.strip():
             try:
                 result = self.process_result(result, result_processor_value)
             except Exception as e:
@@ -573,8 +590,19 @@ class BaseStudio:
         )
 
     def populate_definition(self, composer, function_name):
+
         source = composer.get_source(function_name)
-        return function_name, None, None, html.Pre(source, style=dict(padding="0.5rem"))
+        highlighted = highlight(source, PythonLexer(), HtmlFormatter())
+
+        return (
+            function_name,
+            None,
+            None,
+            html.Div(
+                dash_dangerously_set_inner_html.DangerouslySetInnerHTML(highlighted),
+                style=dict(padding="0.5rem"),
+            ),
+        )
 
     def populate_profiler(self, composer, function_name, parameters):
 
@@ -810,11 +838,19 @@ class ExternalStudio(BaseStudio):
     """
 
     def result_processor(self):
-        return dcc.Textarea(
+        return dash_ace.DashAceEditor(
             id="result-processor",
+            value="",
+            theme="github",
+            mode="python",
+            tabSize=2,
             placeholder='Enter a query string.\n\nYou can use full pandas query strings.\ne.g.: merchant_id == "ABC"',
-            rows=5,
-            style=dict(width="100%", border="none"),
+            maxLines=10,
+            minLines=5,
+            showGutter=False,
+            persistence=True,
+            highlightActiveLine=False,
+            debounceChangePeriod=500
         )
 
     def process_result(self, result, value):

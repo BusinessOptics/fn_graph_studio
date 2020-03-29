@@ -25,6 +25,7 @@ dash-dangerously-set-inner-html = "^0.0.2"
 seaborn = "^0.10.0"
 statsmodels = "^0.11.1"
 matplotlib = "^3.2.1"
+dash-ace = {git = "https://github.com/BusinessOptics/dash-ace.git", allow-prereleases = true}
 
 [tool.poetry.dev-dependencies]
 black = {version = "^18.3-alpha.0", allow-prereleases = true}

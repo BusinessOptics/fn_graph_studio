@@ -80,6 +80,18 @@ testing = ["pytest", "pytest-sugar", "pytest-mock", "lxml", "selenium (>=3.141.0
 
 [[package]]
 category = "main"
+description = "Dash Ace Editor Component"
+name = "dash-ace"
+optional = false
+python-versions = ">=3.6.0"
+version = "0.2.1"
+
+[package.source]
+reference = "5ea2160eb48fe8705ff33af351c79b458ec7a90f"
+type = "git"
+url = "https://github.com/BusinessOptics/dash-ace.git"
+[[package]]
+category = "main"
 description = "Core component suite for Dash"
 name = "dash-core-components"
 optional = false
@@ -487,7 +499,7 @@ dev = ["pytest", "coverage", "tox", "sphinx", "pallets-sphinx-themes", "sphinx-i
 watchdog = ["watchdog"]
 
 [metadata]
-content-hash = "6a565583bcc526442357c54b533e40f97838cc0a15f2f0451dad4a1b56cb5e7f"
+content-hash = "763579855ba010a5387e8e9d460309e527111b83965312e2c20b6061bb70a326"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -514,6 +526,7 @@ cycler = [
 dash = [
     {file = "dash-1.9.1.tar.gz", hash = "sha256:6a488d380f02ba7c8e624a7c4d89f9e39368b8d9ed4a6f463364894a237f1fd8"},
 ]
+dash-ace = []
 dash-core-components = [
     {file = "dash_core_components-1.8.1.tar.gz", hash = "sha256:9a8901b67d3a1038fb79153c17234d5713c2d7cca0382718c6376c786b280e63"},
 ]
