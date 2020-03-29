@@ -14,7 +14,7 @@ def cli():
     pass
 
 
-def _run_module(composer):
+def _run_module(composer, clear):
 
     try:
         module_path, obj_path = composer.split(":")
@@ -39,7 +39,8 @@ def _run_module(composer):
 
             composer_obj = getattr(module, obj_path)
 
-            os.system("cls" if os.name == "nt" else "clear")
+            if clear:
+                os.system("cls" if os.name == "nt" else "clear")
             # Run the studio
             click.echo(click.style(f"Running studio {module_path}", fg="green"))
             run_studio(composer_obj)
@@ -53,7 +54,8 @@ def _run_module(composer):
             # Print the exception if it has changed
             formatted_exc = traceback.format_exc()
             if formatted_exc != previous_exc:
-                os.system("cls" if os.name == "nt" else "clear")
+                if clear:
+                    os.system("cls" if os.name == "nt" else "clear")
                 click.echo(click.style(formatted_exc, fg="red"))
             previous_exc = formatted_exc
 
@@ -63,7 +65,8 @@ def _run_module(composer):
 
 @click.command()
 @click.argument("composer")
-def run(composer):
+@click.option("--clear/--no-clear", "clear", default=True)
+def run(composer, clear):
     """
     Runs a studio for a composer specified by it's module.
 
@@ -72,7 +75,7 @@ def run(composer):
     The COMPOSER path must be specified path.to.module:obj where path.to.module 
     is a python module path and obj is the name of the composer object in that module.
     """
-    _run_module(composer)
+    _run_module(composer, clear)
 
 
 EXAMPLES = {
@@ -90,7 +93,8 @@ EXAMPLE_STRING = "\n".join(
 
 @click.command()
 @click.argument("example")
-def example(example):
+@click.option("--clear/--no-clear", "clear", default=True)
+def example(example, clear):
     """Runs a studio for an example composer.
 
     The following examples are available:
@@ -118,7 +122,7 @@ def example(example):
         click.echo(help_string)
         exit()
 
-    _run_module(f"fn_graph_studio.examples.{example}:f")
+    _run_module(f"fn_graph_studio.examples.{example}:f", clear)
 
 
 cli.add_command(run)

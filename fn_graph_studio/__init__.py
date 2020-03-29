@@ -157,6 +157,7 @@ class BaseStudio:
         @app.callback(
             Output(component_id="graphviz-viewer", component_property="dot_source"),
             [
+                Input(component_id="node-name-filter", component_property="value"),
                 Input(component_id="graph-display-options", component_property="value"),
                 Input(component_id="graph-neighbourhood", component_property="value"),
                 Input(
@@ -170,6 +171,7 @@ class BaseStudio:
             ],
         )
         def populate_graph_with_composer(
+            node_name_filter,
             graph_display_options,
             graph_neighbourhood,
             graph_neighbourhood_size,
@@ -178,6 +180,7 @@ class BaseStudio:
         ):
             return self.populate_graph(
                 composer,
+                node_name_filter,
                 graph_display_options,
                 graph_neighbourhood,
                 graph_neighbourhood_size,
@@ -185,6 +188,33 @@ class BaseStudio:
                 parameter_keys,
                 parameter_values,
             )
+
+        @app.callback(
+            Output(component_id="function-tree", component_property="data"),
+            [Input(component_id="node-name-filter", component_property="value")],
+        )
+        def populate_tree_with_composer(node_name_filter):
+            if node_name_filter:
+                matching_nodes = [
+                    key
+                    for key in composer.functions().keys()
+                    if node_name_filter.lower() in key.lower()
+                ]
+                tree = composer.subgraph(matching_nodes)._build_name_tree()
+            else:
+                tree = composer._build_name_tree()
+
+            def format_tree(key, value):
+                if isinstance(value, str):
+                    return {"name": key, "key": value}
+                else:
+                    return {
+                        "name": key,
+                        "key": key,
+                        "children": [format_tree(k, v) for k, v in value.items()],
+                    }
+
+            return format_tree("_root_", tree)
 
         sidebar_components = self.sidebar_components(composer)
 
@@ -247,79 +277,72 @@ class BaseStudio:
         )
 
     def function_tree(self, component_id, composer):
-        tree = composer._build_name_tree()
-
-        def format_tree(key, value):
-            if isinstance(value, str):
-                return {"name": key, "key": value}
-            else:
-                return {
-                    "name": key,
-                    "key": key,
-                    "children": [format_tree(k, v) for k, v in value.items()],
-                }
-
         return Scroll(
-            DashTreebeard(id=component_id, data=format_tree("_root_", tree), persistence=True)
+            DashTreebeard(
+                id=component_id,
+                data={"name": "_root_", "key": "_root_", "children": []},
+                persistence=True,
+            )
         )
 
     def function_graph(self):
+        label_width = 50
+
+        def Label(text):
+            return html.Strong(
+                f"{text}: ", style=dict(display="inline-block", width=label_width)
+            )
+
         return VStack(
             [
-                html.Div(
-                    [
-                        html.Strong("Filter: "),
-                        dcc.Checklist(
-                            id="graph-neighbourhood",
-                            options=[
-                                {"label": "All", "value": "all"},
-                                {"label": "Ancestors", "value": "ancestors"},
-                                {"label": "Descendants", "value": "descendants"},
-                                {"label": "Neighbours", "value": "neighbours"},
-                            ],
-                            value=["all"],
-                            persistence=True,
-                            labelStyle=dict(paddingLeft=10),
-                            style=dict(display="inline"),
-                        ),
-                    ]
+                dcc.Checklist(
+                    id="graph-neighbourhood",
+                    options=[
+                        {"label": "All", "value": "all"},
+                        {"label": "Ancestors", "value": "ancestors"},
+                        {"label": "Descendants", "value": "descendants"},
+                        {"label": "Neighbours", "value": "neighbours"},
+                    ],
+                    value=["all"],
+                    persistence=True,
+                    labelStyle=dict(paddingRight=10),
+                    inputStyle=dict(marginRight=2),
+                    style=dict(display="inline", marginBottom="5px"),
                 ),
-                html.Div(
-                    [
-                        html.Strong("Neighbourhood size: "),
-                        dcc.Input(
-                            id="graph-neighbourhood-size",
-                            type="number",
-                            value=1,
-                            min=0,
-                            persistence=1,
-                            style=dict(border="1px solid lightgrey"),
-                        ),
-                    ]
+                dcc.Input(
+                    id="graph-neighbourhood-size",
+                    type="number",
+                    value=1,
+                    min=0,
+                    persistence=1,
+                    style=dict(
+                        border="1px solid lightgrey", width="100%", marginBottom="5px"
+                    ),
                 ),
-                html.Div(
-                    [
-                        html.Strong("Display: "),
-                        dcc.Checklist(
-                            id="graph-display-options",
-                            options=[
-                                {"label": "Flatten", "value": "flatten"},
-                                {"label": "Parameters", "value": "parameters"},
-                                {"label": "Links", "value": "links"},
-                                {"label": "Caching", "value": "caching"},
-                            ],
-                            persistence=1,
-                            labelStyle=dict(paddingLeft=10),
-                            style=dict(display="inline"),
-                        ),
-                    ]
+                dcc.Checklist(
+                    id="graph-display-options",
+                    options=[
+                        {"label": "Flatten", "value": "flatten"},
+                        {"label": "Parameters", "value": "parameters"},
+                        {"label": "Links", "value": "links"},
+                        {"label": "Caching", "value": "caching"},
+                    ],
+                    persistence=1,
+                    labelStyle=dict(paddingRight=10),
+                    inputStyle=dict(marginRight=2),
                 ),
                 Pane(
                     DashInteractiveGraphviz(id="graphviz-viewer", persistence=False),
                     style=dict(flexGrow=1),
                 ),
             ],
-            style=dict(height="100%", width="100%", position="absolute", padding="5px"),
+            style=dict(
+                height="100%",
+                width="100%",
+                position="absolute",
+                padding="5px",
+                paddingTop="0px",
+            ),
         )
 
     def parameters(self, composer):
@@ -368,6 +391,7 @@ class BaseStudio:
                             id="explorer-selector",
                             options=explorer_options,
                             labelStyle=dict(paddingLeft=10),
+                            inputStyle=dict(marginRight=2),
                             value="",
                             persistence=True,
                         ),
@@ -375,6 +399,20 @@ class BaseStudio:
                     style=dict(
                         flexShrink=0, padding="5px", borderBottom="1px solid lightgrey"
                     ),
+                ),
+                Pane(
+                    dcc.Input(
+                        id="node-name-filter",
+                        type="text",
+                        placeholder="Filter nodes",
+                        value="",
+                        persistence=True,
+                        style=dict(
+                            border="1px solid lightgrey",
+                            width=" calc(100% - 10px)",
+                            margin="5px",
+                        ),
+                    )
                 ),
                 Pane(
                     list(sidebar_components.values()),
@@ -411,7 +449,7 @@ class BaseStudio:
                     ],
                     value="result",
                     persistence=True,
-                    inputStyle=dict(marginLeft="1rem"),
+                    inputStyle=dict(marginLeft="10px", marginRight="2px"),
                 ),
             ],
             style=dict(
@@ -652,9 +690,7 @@ class BaseStudio:
             return self.populate_definition(composer, function_name)
         else:
             return self.populate_profiler(
-                composer,
-                function_name,
-                dict(zip(parameter_keys, parameter_values)),
+                composer, function_name, dict(zip(parameter_keys, parameter_values))
             )
 
     def update_composer_parameters(self, composer, parameters):
@@ -674,6 +710,7 @@ class BaseStudio:
     def populate_graph(
         self,
         composer,
+        node_name_filter,
         graph_display_options,
         graph_neighbourhood,
         graph_neighbourhood_size,
@@ -728,6 +765,11 @@ class BaseStudio:
                         undirected=True,
                     )
                 )
+
+        if node_name_filter:
+            subgraph = {
+                node for node in subgraph if node_name_filter.lower() in node.lower()
+            }
 
         if caching:
             instructions = get_execution_instructions(composer, composer.dag(), [])
