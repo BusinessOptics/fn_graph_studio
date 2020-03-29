@@ -390,7 +390,7 @@ class BaseStudio:
             showGutter=False,
             persistence=True,
             highlightActiveLine=False,
-            debounceChangePeriod=500
+            debounceChangePeriod=500,
         )
 
     def sidebar(self, composer):
@@ -403,19 +403,28 @@ class BaseStudio:
             [
                 HStack(
                     [
-                        html.Strong("Navigator: "),
-                        dcc.RadioItems(
+                        # html.Strong("Navigator: "),
+                        # dcc.RadioItems(
+                        #     id="explorer-selector",
+                        #     options=explorer_options,
+                        #     labelStyle=dict(paddingLeft=10),
+                        #     inputStyle=dict(marginRight=2),
+                        #     value="",
+                        #     persistence=True,
+                        # ),
+                        dcc.Tabs(
                             id="explorer-selector",
-                            options=explorer_options,
-                            labelStyle=dict(paddingLeft=10),
-                            inputStyle=dict(marginRight=2),
-                            value="",
+                            value="tab-1-example",
+                            parent_className="custom-tabs",
+                            className="custom-tabs-container",
+                            children=[
+                                dcc.Tab(label=option["label"], value=option["value"])
+                                for option in explorer_options
+                            ],
                             persistence=True,
-                        ),
+                        )
                     ],
-                    style=dict(
-                        flexShrink=0, padding="5px", borderBottom="1px solid lightgrey"
-                    ),
+                    style=dict(flexShrink=0),
                 ),
                 Pane(
                     dcc.Input(
@@ -850,7 +859,7 @@ class ExternalStudio(BaseStudio):
             showGutter=False,
             persistence=True,
             highlightActiveLine=False,
-            debounceChangePeriod=500
+            debounceChangePeriod=500,
         )
 
     def process_result(self, result, value):

@@ -164,10 +164,10 @@ a:focus {
   text-decoration-skip: ink;
 }
 a:hover {
-  color: #40a9ff;
+  color: rgb(125, 194, 66);
 }
 a:active {
-  color: #096dd9;
+  color: rgb(125, 194, 66);
 }
 a:active,
 a:hover {
@@ -328,14 +328,62 @@ mark {
   background-color: #feffe6;
 }
 ::-moz-selection {
-  background: #1890ff;
+  background: rgb(125, 194, 66);
   color: #fff;
 }
 ::selection {
-  background: #1890ff;
+  background: rgb(125, 194, 66);
   color: #fff;
 }
 
 .result-loader {
   flex-grow: 1;
+}
+
+/** 
+ * Override tab styling
+ * This is an abuse of CSS and probably quite fragile.
+ * But it is practical for now
+ */
+
+#explorer-selector-parent.tab-parent.custom-tabs {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  margin-top: 5px;
+}
+
+#explorer-selector-parent.tab-parent.custom-tabs::after {
+  content: "-";
+  flex-grow: 1;
+  border-bottom: 1px solid lightgray;
+  color: white;
+}
+
+.tab-container.custom-tabs-container::before {
+  content: "a";
+  width: 5px;
+  display: inline-block;
+  color: white;
+  border-bottom: 1px solid lightgray;
+}
+
+#explorer-selector.tab-container.custom-tabs-container .tab,
+#explorer-selector.tab-container.custom-tabs-container .tab:last-of-type {
+  display: inline-block;
+  background-color: #f9f9f9;
+  border: 1px solid lightgrey;
+  padding: 5px 10px;
+  -webkit-transition: background-color, color 200ms;
+  transition: background-color, color 200ms;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+#explorer-selector.tab-container.custom-tabs-container .tab.tab--selected,
+#explorer-selector.tab-container.custom-tabs-container
+  .tab.tab--selected:last-of-type {
+  border-bottom: none;
+  border-top: solid 2px rgb(125, 194, 66);
 }
