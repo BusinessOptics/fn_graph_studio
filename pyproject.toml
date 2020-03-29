@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fn_graph_studio"
-version = "0.3.6"
+version = "0.3.7"
 description = "A web based explorer for fn_graph function composers"
 authors = ["James Saunders <james@businessoptics.biz>"]
 license = "MIT"
