@@ -96,7 +96,7 @@ VStack = BasePane(
 class BaseStudio:
     def __init__(self, app, composer, renderers=None):
 
-        app.title = "Fn Compose Studio"
+        app.title = "Fn Graph Studio"
 
         app.layout = self.layout(composer)
 
