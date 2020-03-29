@@ -9,6 +9,7 @@ import matplotlib.pylab as plt
 import pandas as pd
 import plotly
 import seaborn.axisgrid
+from pprint import pformat
 
 
 def render_dataframe(result):
@@ -32,7 +33,9 @@ def render_plotly(result):
 
 
 def render_object(result):
-    return html.Pre(str(result), style=dict(paddingLeft="0.5rem", paddingTop="0.5rem"))
+    return html.Pre(
+        str(pformat(result)), style=dict(paddingLeft="0.5rem", paddingTop="0.5rem")
+    )
 
 
 def mpl_to_svg(in_fig: matplotlib.artist.Artist):
