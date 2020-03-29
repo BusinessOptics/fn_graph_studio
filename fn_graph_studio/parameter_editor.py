@@ -6,11 +6,8 @@ import dash_html_components as html
 
 def get_parameter_attrs(key, type_):
 
-    if issubclass(type_, bool):
-        return None
-
     parameter_attrs = {
-        bool: dict(type="text"),
+        bool: dict(type="bool"),  # This is overridden
         float: dict(type="number"),
         int: dict(type="number"),
         str: dict(type="text"),
@@ -27,11 +24,15 @@ def create_input(key, type_, value):
 
     if issubclass(type_, bool):
         return dcc.RadioItems(
+            id=f"parameter_{key}",
             options=[
                 {"label": "True", "value": "True"},
                 {"label": "False", "value": "False"},
             ],
             value=str(value),
+            persistence=True,
+            inputStyle=dict(marginRight=2),
+            labelStyle=dict(marginRight=10),
         )
 
     attrs = get_parameter_attrs(key, type_)

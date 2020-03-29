@@ -403,15 +403,6 @@ class BaseStudio:
             [
                 HStack(
                     [
-                        # html.Strong("Navigator: "),
-                        # dcc.RadioItems(
-                        #     id="explorer-selector",
-                        #     options=explorer_options,
-                        #     labelStyle=dict(paddingLeft=10),
-                        #     inputStyle=dict(marginRight=2),
-                        #     value="",
-                        #     persistence=True,
-                        # ),
                         dcc.Tabs(
                             id="explorer-selector",
                             value="tab-1-example",
@@ -733,9 +724,9 @@ class BaseStudio:
     def update_composer_parameters(self, composer, parameters):
         def smartish_cast(type_, value):
             if issubclass(type_, bool) and isinstance(value, str):
-                return value.lower() == "t"
-
-            return value
+                return value.lower()[0] == "t"
+            else:
+                return value
 
         parameters = {
             key: smartish_cast(type_, parameters[key])
