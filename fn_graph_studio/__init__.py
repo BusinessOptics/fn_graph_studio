@@ -390,7 +390,7 @@ class BaseStudio:
             showGutter=False,
             persistence=True,
             highlightActiveLine=False,
-            debounceChangePeriod=500,
+            debounceChangePeriod=1000,
         )
 
     def sidebar(self, composer):
@@ -429,6 +429,7 @@ class BaseStudio:
                             width=" calc(100% - 10px)",
                             margin="5px",
                         ),
+                        debounce=True,
                     )
                 ),
                 Pane(
@@ -852,7 +853,7 @@ class ExternalStudio(BaseStudio):
             showGutter=False,
             persistence=True,
             highlightActiveLine=False,
-            debounceChangePeriod=500,
+            debounceChangePeriod=1000,
         )
 
     def process_result(self, result, value):

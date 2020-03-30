@@ -2,10 +2,13 @@ import os
 import time
 import traceback
 from importlib import import_module, invalidate_caches
+from io import StringIO
+from pathlib import Path
 
 import click
 import sh
 
+import fn_graph.examples
 from fn_graph_studio import run_studio
 
 
@@ -87,10 +90,6 @@ EXAMPLES = {
     "machine_learning": "A simple machine learing example based",
 }
 
-EXAMPLE_STRING = "\n".join(
-    [f"{name}:\n  {description}\n" for name, description in EXAMPLES.items()]
-)
-
 
 @click.command()
 @click.argument("example")
@@ -98,35 +97,31 @@ EXAMPLE_STRING = "\n".join(
 def example(example, clear):
     """Runs a studio for an example composer.
 
-    The following examples are available:
-
-    simple:
-        A simple example showing basic functionality
-
-    complex:
-        A more complex example showing namespaces
-
-    broken:
-        An example with a broken composer
-
-    plotting:
-        Examples of various different supported plotting libraries
-
-    caching:
-        An example showing caching behavior
-
-    machine_learning:
-        A simple machine learing example based
-
-    EXAMPLE the name of the example to run, from the above list
+    EXAMPLE the name of the example to run, enter "list" to list possibilities.
     """
 
-    if example not in EXAMPLES:
-        help_string = f"EXAMPLE must be one of the below:\n\n{EXAMPLE_STRING}"
-        click.echo(help_string)
-        exit()
+    examples_path = Path(fn_graph.examples.__path__[0])
+    example_module_names = [
+        path.stem
+        for path in examples_path.glob("*.py")
+        if not path.stem.startswith("__")
+    ]
 
-    _run_module(f"fn_graph_studio.examples.{example}:f", clear)
+    if example in example_module_names:
+        _run_module(f"fn_graph.examples.{example}:f", clear)
+    else:
+        buffer = StringIO()
+        buffer.write("EXAMPLE must be one of the below:\n\n")
+
+        for module_name in example_module_names:
+            buffer.write(f"{module_name}:\n")
+            module = import_module(f"fn_graph.examples.{module_name}")
+            doc_string = module.__doc__ or ""
+            doc_string = doc_string[: doc_string.find(".") + 1].strip()
+            buffer.write(f"  {doc_string}\n\n")
+
+        buffer.seek(0)
+        click.echo(buffer.read())
 
 
 cli.add_command(run)
