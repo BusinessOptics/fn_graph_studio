@@ -386,4 +386,5 @@ mark {
   .tab.tab--selected:last-of-type {
   border-bottom: none;
   border-top: solid 2px rgb(125, 194, 66);
+  background: white;
 }
