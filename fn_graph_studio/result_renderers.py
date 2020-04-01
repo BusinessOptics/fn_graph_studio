@@ -1,15 +1,17 @@
 from io import BytesIO
+from pprint import pformat
 
 import dash_core_components as dcc
+import dash_cytoscape as cyto
 import dash_dangerously_set_inner_html
 import dash_html_components as html
 import dash_table
 import matplotlib.artist
 import matplotlib.pylab as plt
+import networkx as nx
 import pandas as pd
 import plotly
 import seaborn.axisgrid
-from pprint import pformat
 
 
 def render_dataframe(result):
@@ -74,6 +76,20 @@ def render_matplotlib(result):
     )
 
 
+def render_networkx(G):
+    nodes = [{"data": {"id": node, "label": node}} for node in G.nodes()]
+    edges = [{"data": {"source": f, "target": t}} for (f, t) in G.edges()]
+
+    if len(nodes) > 200:
+        return render_object(G)
+
+    return cyto.Cytoscape(
+        layout={"name": "cose"},
+        style={"width": "100%", "height": "100%"},
+        elements=nodes + edges,
+    )
+
+
 def add_default_renderers(renderers):
     return [
         *(renderers or {}).items(),
@@ -81,5 +97,6 @@ def add_default_renderers(renderers):
         (plotly.graph_objs._figure.Figure, render_plotly),
         (matplotlib.artist.Artist, render_matplotlib),
         (seaborn.axisgrid.Grid, render_seaborn),
+        (nx.Graph, render_networkx),
         (object, render_object),
     ]

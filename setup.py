@@ -34,7 +34,7 @@ setup(
     entry_points={
         "console_scripts": ["fn_graph_studio = fn_graph_studio.cli:cli"]
     },
-    packages=['fn_graph_studio', 'fn_graph_studio.examples'],
+    packages=['fn_graph_studio'],
     package_dir={"": "."},
     package_data={"fn_graph_studio": ["*.css"]},
     install_requires=[
@@ -42,7 +42,7 @@ setup(
         'dash-dangerously-set-inner-html==0.*,>=0.0.2',
         'dash-interactive-graphviz==0.*,>=0.1.0',
         'dash-split-pane==1.*,>=1.0.0', 'dash-treebeard==0.*,>=0.0.1',
-        'fn-graph>=0.5.0', 'matplotlib==3.*,>=3.2.1', 'pandas>=0.25.3',
+        'fn-graph>=0.7.2', 'matplotlib==3.*,>=3.2.1', 'pandas>=0.25.3',
         'plotly==4.*,>=4.4.0', 'seaborn==0.*,>=0.10.0', 'sh==1.*,>=1.0.0',
         'statsmodels==0.*,>=0.11.1'
     ],

@@ -291,7 +291,7 @@ class BaseStudio:
             DashTreebeard(
                 id=component_id,
                 data={"name": "_root_", "key": "_root_", "children": []},
-                persistence=True,
+                persistence="tree",
             )
         )
 
@@ -638,9 +638,9 @@ class BaseStudio:
                         background=color,
                         height="1rem",
                     ),
-                    title=f"{key} = {metric_total:.2f}%",
+                    title=f"{key} = {metric_total:.2f}% ({metric_absolute:.3f}s)",
                 )
-                for key, value, metric_total, color in metrics
+                for key, value, metric_total, metric_absolute, color in metrics
             ]
 
         def profile_section(section, bar_description):
@@ -655,6 +655,7 @@ class BaseStudio:
                                         key,
                                         metrics[key] / highest * 90,
                                         metrics[key] / total * 100,
+                                        metrics[key],
                                         color,
                                     )
                                     for key, color in bar_description

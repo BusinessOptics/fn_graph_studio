@@ -70,7 +70,6 @@ def title(string):
 
 
 def parameter_widgets(parameters):
-
     widgets = {
         key: create_input(key, type_, value)
         for key, (type_, value) in parameters.items()
