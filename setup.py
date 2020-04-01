@@ -21,7 +21,7 @@ if os.path.exists(readme_path):
 setup(
     long_description=readme,
     name='fn_graph_studio',
-    version='0.3.7',
+    version='0.3.8',
     description='A web based explorer for fn_graph function composers',
     python_requires='==3.*,>=3.7.0',
     project_urls={
@@ -39,12 +39,13 @@ setup(
     package_data={"fn_graph_studio": ["*.css"]},
     install_requires=[
         'dash==1.*,>=1.7.0', 'dash-ace', 'dash-core-components==1.*,>=1.6.0',
+        'dash-cytoscape==0.*,>=0.1.1',
         'dash-dangerously-set-inner-html==0.*,>=0.0.2',
         'dash-interactive-graphviz==0.*,>=0.1.0',
         'dash-split-pane==1.*,>=1.0.0', 'dash-treebeard==0.*,>=0.0.1',
-        'fn-graph>=0.7.2', 'matplotlib==3.*,>=3.2.1', 'pandas>=0.25.3',
-        'plotly==4.*,>=4.4.0', 'seaborn==0.*,>=0.10.0', 'sh==1.*,>=1.0.0',
-        'statsmodels==0.*,>=0.11.1'
+        'fn-graph>=0.7.2', 'matplotlib==3.*,>=3.2.1', 'networkx==2.*,>=2.4.0',
+        'pandas>=0.25.3', 'plotly==4.*,>=4.4.0', 'seaborn==0.*,>=0.10.0',
+        'sh==1.*,>=1.0.0', 'statsmodels==0.*,>=0.11.1'
     ],
     dependency_links=[
         'git+https://github.com/BusinessOptics/dash-ace.git#egg=dash-ace'
