@@ -21,7 +21,7 @@ if os.path.exists(readme_path):
 setup(
     long_description=readme,
     name="fn_graph_studio",
-    version="0.3.7",
+    version="0.3.8",
     description="A web based explorer for fn_graph function composers",
     python_requires="==3.*,>=3.7.0",
     project_urls={
@@ -38,7 +38,6 @@ setup(
     install_requires=[
         "dash==1.*,>=1.7.0",
         "dash-ace",
-        "dash-ace-persistent==0.*,>=0.3.3",
         "dash-core-components==1.*,>=1.6.0",
         "dash-cytoscape==0.*,>=0.1.1",
         "dash-dangerously-set-inner-html==0.*,>=0.0.2",
