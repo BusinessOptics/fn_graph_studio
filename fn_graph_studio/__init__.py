@@ -2,7 +2,7 @@ import inspect
 import traceback
 from pathlib import Path
 
-import dash_ace
+import dash_ace_persistent
 import dash_core_components as dcc
 import dash_dangerously_set_inner_html
 import dash_html_components as html
@@ -378,7 +378,7 @@ class BaseStudio:
         }
 
     def result_processor(self):
-        return dash_ace.DashAceEditor(
+        return dash_ace_persistent.DashAceEditor(
             id="result-processor",
             value="",
             theme="github",
@@ -842,7 +842,7 @@ class ExternalStudio(BaseStudio):
     """
 
     def result_processor(self):
-        return dash_ace.DashAceEditor(
+        return dash_ace_persistent.DashAceEditor(
             id="result-processor",
             value="",
             theme="github",
