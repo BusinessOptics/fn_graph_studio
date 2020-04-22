@@ -95,17 +95,6 @@ VStack = BasePane(
 
 
 class BaseStudio:
-    @property
-    def composer(self):
-        """
-        Lazily calls the get_composer function.
-
-        This allows the get_composer function to access 
-        the flask.request which allows it to dynamically choose 
-        a composer.
-        """
-        return self._get_composer()
-
     def __init__(self, app, *, get_composer, title="Fn Graph Studio", renderers=None):
         self._get_composer = get_composer
 
@@ -155,11 +144,16 @@ class BaseStudio:
                 Input(component_id="function-tree", component_property="selected"),
                 Input(component_id="result-processor", component_property="value"),
                 Input(component_id="result-or-definition", component_property="value"),
+                Input(component_id="url", component_property="pathname"),
                 Input({"type": "parameter", "key": ALL}, "value"),
             ],
         )
         def populate_result_with_composer(
-            function_name, result_processor, result_or_definition, parameter_values
+            function_name,
+            result_processor,
+            result_or_definition,
+            path,
+            parameter_values,
         ):
             parameters = {
                 input["id"]["key"]: input["value"]
@@ -167,7 +161,7 @@ class BaseStudio:
             }
 
             return self.populate_result_pane(
-                self.composer,
+                self.get_composer(path),
                 add_default_renderers(renderers),
                 parameters,
                 function_name,
@@ -185,6 +179,7 @@ class BaseStudio:
                     component_id="graph-neighbourhood-size", component_property="value"
                 ),
                 Input(component_id="function-tree", component_property="selected"),
+                Input(component_id="url", component_property="pathname"),
             ],
         )
         def populate_graph_with_composer(
@@ -193,10 +188,11 @@ class BaseStudio:
             graph_neighbourhood,
             graph_neighbourhood_size,
             selected_node,
+            url,
         ):
-
+            composer = self.get_composer(url)
             return self.populate_graph(
-                self.composer,
+                composer,
                 node_name_filter,
                 graph_display_options,
                 graph_neighbourhood,
@@ -206,18 +202,22 @@ class BaseStudio:
 
         @app.callback(
             Output(component_id="function-tree", component_property="data"),
-            [Input(component_id="node-name-filter", component_property="value")],
+            [
+                Input(component_id="node-name-filter", component_property="value"),
+                Input(component_id="url", component_property="pathname"),
+            ],
         )
-        def populate_tree_with_composer(node_name_filter):
+        def populate_tree_with_composer(node_name_filter, url):
+            composer = self.get_composer(url)
             if node_name_filter:
                 matching_nodes = [
                     key
                     for key in self.composer.functions().keys()
                     if node_name_filter.strip().lower() in key.lower()
                 ]
-                tree = self.composer.subgraph(matching_nodes)._build_name_tree()
+                tree = composer.subgraph(matching_nodes)._build_name_tree()
             else:
-                tree = self.composer._build_name_tree()
+                tree = composer._build_name_tree()
 
             def format_tree(key, value):
                 if isinstance(value, str):
@@ -237,8 +237,8 @@ class BaseStudio:
             [State("parameter_store", "data")],
         )
         def populate_parameters_with_composer(url, store):
-
-            return parameter_widgets(self.composer.parameters(), store or {})
+            composer = self.get_composer(url)
+            return parameter_widgets(composer.parameters(), store or {})
 
         sidebar_components = self.sidebar_components()
 
@@ -301,6 +301,14 @@ class BaseStudio:
                 return selected
             else:
                 return data.get("selected", "")
+
+    def get_composer(self, path):
+        """
+        Lazily calls the get_composer function based on the path
+
+        This allows it to dynamically choose  a composer.
+        """
+        return self._get_composer(path)
 
     def layout(self):
         return Pane(
@@ -888,5 +896,5 @@ def _run_studio(cls, composer, **kwargs):
     Run a studio of type cls for the given composer.
     """
     app = Dash(__name__, suppress_callback_exceptions=True)
-    cls(app, get_composer=lambda: composer, **kwargs)
+    cls(app, get_composer=lambda path: composer, **kwargs)
     app.run_server(debug=True)
