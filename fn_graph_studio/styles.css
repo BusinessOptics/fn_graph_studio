@@ -336,7 +336,10 @@ mark {
   color: #fff;
 }
 
-.result-loader {
+/* The Loading component has a terrible API 
+ * This is the only way to get a solid style on it
+ */
+.result-layout > :last-child {
   flex-grow: 1;
 }
 

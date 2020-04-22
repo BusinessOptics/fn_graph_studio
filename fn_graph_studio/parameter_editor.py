@@ -15,7 +15,7 @@ def get_parameter_attrs(key, type_):
 
     for base_type, attrs in parameter_attrs.items():
         if issubclass(type_, base_type):
-            return dict(**attrs, id=f"parameter_{key}")
+            return dict(**attrs, id={"type": "parameter", "key": key})
 
     return None
 
@@ -24,7 +24,7 @@ def create_input(key, type_, value):
 
     if issubclass(type_, bool):
         return dcc.RadioItems(
-            id=f"parameter_{key}",
+            id={"type": "parameter", "key": key},
             options=[
                 {"label": "True", "value": "True"},
                 {"label": "False", "value": "False"},
@@ -69,9 +69,11 @@ def title(string):
     return string.replace("_", " ").capitalize()
 
 
-def parameter_widgets(parameters):
+def parameter_widgets(parameters, stored_values):
     widgets = {
-        key: create_input(key, type_, value)
+        key: create_input(
+            key, type_, stored_values[key] if key in stored_values else value
+        )
         for key, (type_, value) in parameters.items()
     }
 

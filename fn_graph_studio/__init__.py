@@ -2,6 +2,7 @@ import inspect
 import traceback
 from pathlib import Path
 
+import dash
 import dash_ace_persistent
 import dash_core_components as dcc
 import dash_dangerously_set_inner_html
@@ -11,7 +12,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 from dash import Dash
-from dash.dependencies import Input, Output, State
+from dash.dependencies import ALL, Input, Output, State
 from dash_interactive_graphviz import DashInteractiveGraphviz
 from dash_split_pane import DashSplitPane
 from dash_treebeard import DashTreebeard
@@ -36,7 +37,7 @@ __package__ = "fn_graph_studio"
 
 
 # Load up embedded styles
-# We embed the styles directly in the template ofr portabilities sake
+# We embed the styles directly in the template for portabilities sake
 # I feel there is likely a better way to do this but I cannot fnd it.
 with open(Path(__file__).parent / "styles.css") as f:
     styles = f.read()
@@ -94,11 +95,23 @@ VStack = BasePane(
 
 
 class BaseStudio:
-    def __init__(self, app, composer, renderers=None):
+    @property
+    def composer(self):
+        """
+        Lazily calls the get_composer function.
 
-        app.title = "Fn Graph Studio"
+        This allows the get_composer function to access 
+        the flask.request which allows it to dynamically choose 
+        a composer.
+        """
+        return self._get_composer()
 
-        app.layout = self.layout(composer)
+    def __init__(self, app, *, get_composer, title="Fn Graph Studio", renderers=None):
+        self._get_composer = get_composer
+
+        app.title = title
+
+        app.layout = self.layout()
 
         app.index_string = (
             """
@@ -129,9 +142,6 @@ class BaseStudio:
         """
         )
 
-        parameter_keys = list(get_variable_parameter_keys(composer.parameters()))
-        parameter_ids = list(get_variable_parameter_ids(composer.parameters()))
-
         @app.callback(
             [
                 Output(
@@ -145,23 +155,24 @@ class BaseStudio:
                 Input(component_id="function-tree", component_property="selected"),
                 Input(component_id="result-processor", component_property="value"),
                 Input(component_id="result-or-definition", component_property="value"),
-                *[
-                    Input(component_id=id_, component_property="value")
-                    for id_ in parameter_ids
-                ],
+                Input({"type": "parameter", "key": ALL}, "value"),
             ],
         )
         def populate_result_with_composer(
-            function_name, result_processor, result_or_definition, *parameter_values
+            function_name, result_processor, result_or_definition, parameter_values
         ):
+            parameters = {
+                input["id"]["key"]: input["value"]
+                for input in dash.callback_context.inputs_list[-1]
+            }
+
             return self.populate_result_pane(
-                composer,
+                self.composer,
                 add_default_renderers(renderers),
-                parameter_keys,
+                parameters,
                 function_name,
                 result_processor,
                 result_or_definition,
-                parameter_values,
             )
 
         @app.callback(
@@ -174,10 +185,6 @@ class BaseStudio:
                     component_id="graph-neighbourhood-size", component_property="value"
                 ),
                 Input(component_id="function-tree", component_property="selected"),
-                *[
-                    Input(component_id=id_, component_property="value")
-                    for id_ in parameter_ids
-                ],
             ],
         )
         def populate_graph_with_composer(
@@ -186,17 +193,15 @@ class BaseStudio:
             graph_neighbourhood,
             graph_neighbourhood_size,
             selected_node,
-            *parameter_values,
         ):
+
             return self.populate_graph(
-                composer,
+                self.composer,
                 node_name_filter,
                 graph_display_options,
                 graph_neighbourhood,
                 graph_neighbourhood_size,
                 selected_node,
-                parameter_keys,
-                parameter_values,
             )
 
         @app.callback(
@@ -207,12 +212,12 @@ class BaseStudio:
             if node_name_filter:
                 matching_nodes = [
                     key
-                    for key in composer.functions().keys()
+                    for key in self.composer.functions().keys()
                     if node_name_filter.strip().lower() in key.lower()
                 ]
-                tree = composer.subgraph(matching_nodes)._build_name_tree()
+                tree = self.composer.subgraph(matching_nodes)._build_name_tree()
             else:
-                tree = composer._build_name_tree()
+                tree = self.composer._build_name_tree()
 
             def format_tree(key, value):
                 if isinstance(value, str):
@@ -226,13 +231,20 @@ class BaseStudio:
 
             return format_tree("_root_", tree)
 
-        sidebar_components = self.sidebar_components(composer)
+        @app.callback(
+            Output(component_id="parameters-holder", component_property="children"),
+            [Input(component_id="url", component_property="pathname")],
+            [State("parameter_store", "data")],
+        )
+        def populate_parameters_with_composer(url, store):
+
+            return parameter_widgets(self.composer.parameters(), store or {})
+
+        sidebar_components = self.sidebar_components()
 
         @app.callback(
-            [
-                Output(component.id, "style")
-                for component in sidebar_components.values()
-            ],
+            [Output(component.id, "style") for component in sidebar_components.values()]
+            + [Output(component_id="node-name-filter", component_property="style")],
             [Input("explorer-selector", "value")],
         )
         def toggle_explorer(explorer):
@@ -245,14 +257,32 @@ class BaseStudio:
                     display="block" if option == explorer else "none",
                 )
                 for option in sidebar_components.keys()
+            ] + [
+                dict(
+                    border="1px solid lightgrey",
+                    width=" calc(100% - 10px)",
+                    margin="5px",
+                    display="block" if "parameters" != explorer else "none",
+                )
             ]
 
         @app.callback(
-            Output("session", "data"),
-            [Input("function-tree", "selected")],
-            [State("session", "data")],
+            Output("parameter_store", "data"),
+            [Input({"type": "parameter", "key": ALL}, "value")],
         )
-        def on_save_to_session(selected, data):
+        def save_parameters_to_session(parameter_values):
+            parameters = {
+                input["id"]["key"]: input["value"]
+                for input in dash.callback_context.inputs_list[-1]
+            }
+            return parameters
+
+        @app.callback(
+            Output("tree_store", "data"),
+            [Input("function-tree", "selected")],
+            [State("tree_store", "data")],
+        )
+        def save_tree_to_session(selected, data):
             if selected and isinstance(selected[0], list):
                 selected = selected[0]
 
@@ -263,7 +293,7 @@ class BaseStudio:
         @app.callback(
             Output("function-tree", "selected"),
             [Input("graphviz-viewer", "selected"), Input("url", "pathname")],
-            [State("session", "data")],
+            [State("tree_store", "data")],
         )
         def update_tree_node(selected, _url, data):
             data = data or {}
@@ -272,21 +302,20 @@ class BaseStudio:
             else:
                 return data.get("selected", "")
 
-    def layout(self, composer):
+    def layout(self):
         return Pane(
             children=[
                 dcc.Location(id="url", refresh=False),
-                dcc.Store(id="session", storage_type="session"),
+                dcc.Store(id="parameter_store", storage_type="session"),
+                dcc.Store(id="tree_store", storage_type="session"),
                 DashSplitPane(
-                    [self.sidebar(composer), self.results_pane()],
-                    size=400,
-                    persistence=True,
+                    [self.sidebar(), self.results_pane()], size=400, persistence=True
                 ),
             ],
             style=dict(width="100%", height="100%", position="absolute"),
         )
 
-    def function_tree(self, component_id, composer):
+    def function_tree(self, component_id):
         return Scroll(
             DashTreebeard(
                 id=component_id,
@@ -355,10 +384,7 @@ class BaseStudio:
             ),
         )
 
-    def parameters(self, composer):
-        return parameter_widgets(composer.parameters())
-
-    def sidebar_components(self, composer):
+    def sidebar_components(self):
         return {
             "graph": Fill(
                 self.function_graph(),
@@ -366,15 +392,11 @@ class BaseStudio:
                 style=dict(display="none"),
             ),
             "tree": Fill(
-                self.function_tree("function-tree", composer),
+                self.function_tree("function-tree"),
                 id="function-tree-holder",
                 style=dict(display="none"),
             ),
-            "parameters": Fill(
-                self.parameters(composer),
-                id="parameters-holder",
-                style=dict(display="none"),
-            ),
+            "parameters": Fill(id="parameters-holder", style=dict(display="none")),
         }
 
     def result_processor(self):
@@ -393,8 +415,8 @@ class BaseStudio:
             debounceChangePeriod=1000,
         )
 
-    def sidebar(self, composer):
-        sidebar_components = self.sidebar_components(composer)
+    def sidebar(self):
+        sidebar_components = self.sidebar_components()
         explorer_options = [
             dict(value=k, label=k.capitalize()) for k in sidebar_components
         ]
@@ -423,12 +445,8 @@ class BaseStudio:
                         type="text",
                         placeholder="Filter nodes",
                         value="",
+                        style=dict(display="none"),
                         persistence=True,
-                        style=dict(
-                            border="1px solid lightgrey",
-                            width=" calc(100% - 10px)",
-                            margin="5px",
-                        ),
                         debounce=True,
                     )
                 ),
@@ -479,14 +497,13 @@ class BaseStudio:
 
         result = dcc.Loading(
             Pane(Scroll(id="result-container"), style=dict(height="100%")),
-            style=dict(flexGrow=1),
-            className="result-loader",
             color="#7dc242",
         )
 
         return VStack(
             [status_bar, error_container, result],
             style=dict(flexGrow=1, flexShrink=1, height="100%"),
+            className="result-layout",
         )
 
     def process_result(self, result, result_processor_value):
@@ -698,11 +715,10 @@ class BaseStudio:
         self,
         composer,
         renderers,
-        parameter_keys,
+        parameters,
         function_name,
         result_processor,
         result_or_definition,
-        parameter_values,
     ):
 
         if function_name not in set(composer.dag().nodes()):
@@ -710,18 +726,12 @@ class BaseStudio:
 
         if result_or_definition == "result":
             return self.populate_result(
-                composer,
-                renderers,
-                function_name,
-                result_processor,
-                dict(zip(parameter_keys, parameter_values)),
+                composer, renderers, function_name, result_processor, parameters
             )
         elif result_or_definition == "definition":
             return self.populate_definition(composer, function_name)
         else:
-            return self.populate_profiler(
-                composer, function_name, dict(zip(parameter_keys, parameter_values))
-            )
+            return self.populate_profiler(composer, function_name, parameters)
 
     def update_composer_parameters(self, composer, parameters):
         def smartish_cast(type_, value):
@@ -745,18 +755,12 @@ class BaseStudio:
         graph_neighbourhood,
         graph_neighbourhood_size,
         selected_node,
-        parameter_keys,
-        parameter_values,
     ):
         graph_display_options = graph_display_options or []
         hide_parameters = "parameters" not in graph_display_options
         flatten = "flatten" in graph_display_options
         caching = "caching" in graph_display_options
         expand_links = "links" in graph_display_options
-
-        composer = self.update_composer_parameters(
-            composer, dict(zip(parameter_keys, parameter_values))
-        )
 
         G = composer.dag()
         subgraph = set()
@@ -765,7 +769,6 @@ class BaseStudio:
             subgraph.update(G.nodes())
 
         if selected_node in G:
-
             if "ancestors" in graph_neighbourhood:
                 subgraph.update(
                     nx.ego_graph(
@@ -884,6 +887,6 @@ def _run_studio(cls, composer, **kwargs):
     """
     Run a studio of type cls for the given composer.
     """
-    app = Dash(__name__)
-    cls(app, composer, **kwargs)
+    app = Dash(__name__, suppress_callback_exceptions=True)
+    cls(app, get_composer=lambda: composer, **kwargs)
     app.run_server(debug=True)

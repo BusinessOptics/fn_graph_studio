@@ -83,7 +83,7 @@ def run(composer, clear):
 
 EXAMPLES = {
     "simple": "A simple example showing basic functionality",
-    "complex": "A more complex example showing namespaces",
+    "namespaces": "A more complex example showing namespaces",
     "broken": "An example with a broken composer",
     "plotting": "Examples of various different supported plotting libraries",
     "caching": "An example showing caching behaviour",
