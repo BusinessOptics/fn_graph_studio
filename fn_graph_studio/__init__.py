@@ -95,9 +95,19 @@ VStack = BasePane(
 
 
 class BaseStudio:
-    def __init__(self, app, *, get_composer, title="Fn Graph Studio", renderers=None):
+    def __init__(
+        self,
+        app,
+        *,
+        get_composer,
+        title="Fn Graph Studio",
+        show_profiler=True,
+        editable_parameters=True,
+        renderers=None,
+    ):
         self._get_composer = get_composer
-
+        self.show_profiler = show_profiler
+        self.editable_parameters = editable_parameters
         app.title = title
 
         app.layout = self.layout()
@@ -238,7 +248,9 @@ class BaseStudio:
         )
         def populate_parameters_with_composer(url, store):
             composer = self.get_composer(url)
-            return parameter_widgets(composer.parameters(), store or {})
+            return parameter_widgets(
+                composer.parameters(), store or {}, self.editable_parameters
+            )
 
         sidebar_components = self.sidebar_components()
 
@@ -317,7 +329,9 @@ class BaseStudio:
                 dcc.Store(id="parameter_store", storage_type="session"),
                 dcc.Store(id="tree_store", storage_type="session"),
                 DashSplitPane(
-                    [self.sidebar(), self.results_pane()], size=400, persistence=True
+                    [self.sidebar(), self.results_pane_layout()],
+                    size=400,
+                    persistence=True,
                 ),
             ],
             style=dict(width="100%", height="100%", position="absolute"),
@@ -472,7 +486,14 @@ class BaseStudio:
             style=dict(flexShrink=0, height="100%", borderRight="1px solid lightgrey"),
         )
 
-    def results_pane(self):
+    def results_pane_layout(self):
+
+        options = [
+            {"label": "Result", "value": "result"},
+            {"label": "Definition", "value": "definition"},
+        ]
+        if self.show_profiler:
+            options.append({"label": "Profiler", "value": "profiler"})
 
         status_bar = html.Div(
             [
@@ -486,11 +507,7 @@ class BaseStudio:
                 ),
                 dcc.RadioItems(
                     id="result-or-definition",
-                    options=[
-                        {"label": "Result", "value": "result"},
-                        {"label": "Definition", "value": "definition"},
-                        {"label": "Profiler", "value": "profiler"},
-                    ],
+                    options=options,
                     value="result",
                     persistence=True,
                     inputStyle=dict(marginLeft="10px", marginRight="2px"),

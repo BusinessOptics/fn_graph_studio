@@ -20,7 +20,7 @@ def get_parameter_attrs(key, type_):
     return None
 
 
-def create_input(key, type_, value):
+def create_input(key, type_, value, editable):
 
     if issubclass(type_, bool):
         return dcc.RadioItems(
@@ -37,7 +37,7 @@ def create_input(key, type_, value):
 
     attrs = get_parameter_attrs(key, type_)
 
-    if attrs:
+    if attrs and editable:
         return dcc.Input(
             **attrs,
             debounce=True,
@@ -69,13 +69,19 @@ def title(string):
     return string.replace("_", " ").capitalize()
 
 
-def parameter_widgets(parameters, stored_values):
-    widgets = {
-        key: create_input(
-            key, type_, stored_values[key] if key in stored_values else value
-        )
-        for key, (type_, value) in parameters.items()
-    }
+def parameter_widgets(parameters, stored_values, editable_parameters):
+    if editable_parameters:
+        widgets = {
+            key: create_input(
+                key, type_, stored_values[key] if key in stored_values else value, True
+            )
+            for key, (type_, value) in parameters.items()
+        }
+    else:
+        widgets = {
+            key: create_input(key, type_, value, False)
+            for key, (type_, value) in parameters.items()
+        }
 
     def recursive_tree():
         return defaultdict(recursive_tree)
