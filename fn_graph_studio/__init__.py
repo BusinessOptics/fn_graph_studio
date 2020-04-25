@@ -329,7 +329,7 @@ class BaseStudio:
                 dcc.Store(id="parameter_store", storage_type="session"),
                 dcc.Store(id="tree_store", storage_type="session"),
                 DashSplitPane(
-                    [self.sidebar(), self.results_pane_layout()],
+                    [self.sidebar_layout(), self.results_pane_layout()],
                     size=400,
                     persistence=True,
                 ),
@@ -437,7 +437,7 @@ class BaseStudio:
             debounceChangePeriod=1000,
         )
 
-    def sidebar(self):
+    def sidebar_layout(self):
         sidebar_components = self.sidebar_components()
         explorer_options = [
             dict(value=k, label=k.capitalize()) for k in sidebar_components
@@ -505,12 +505,18 @@ class BaseStudio:
                         html.Span(id="result-type"),
                     ]
                 ),
-                dcc.RadioItems(
-                    id="result-or-definition",
-                    options=options,
-                    value="result",
-                    persistence=True,
-                    inputStyle=dict(marginLeft="10px", marginRight="2px"),
+                html.Span(
+                    [
+                        # html.Button("Invalidate Cache", id="invalidate-cache"),
+                        dcc.RadioItems(
+                            id="result-or-definition",
+                            options=options,
+                            value="result",
+                            persistence=True,
+                            inputStyle=dict(marginLeft="10px", marginRight="2px"),
+                        )
+                    ],
+                    style=dict(display="flex", alignItems="center"),
                 ),
             ],
             style=dict(
@@ -759,6 +765,10 @@ class BaseStudio:
             return self.populate_profiler(composer, function_name, parameters)
 
     def update_composer_parameters(self, composer, parameters):
+        """
+        Ensures that boolean parameters et cast correctly
+        """
+
         def smartish_cast(type_, value):
             if issubclass(type_, bool) and isinstance(value, str):
                 return value.lower()[0] == "t"
