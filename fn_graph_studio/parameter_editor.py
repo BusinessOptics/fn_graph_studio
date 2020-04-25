@@ -102,8 +102,8 @@ def parameter_widgets(parameters, stored_values, editable_parameters):
             if level == 0:
                 return html.Div(
                     [
-                        create_containers(level + 1, ckey, cvalue)
-                        for ckey, cvalue in value.items()
+                        create_containers(level + 1, container_key, container_value)
+                        for container_key, container_value in value.items()
                     ],
                     style=dict(padding="0.5rem"),
                 )
@@ -121,8 +121,10 @@ def parameter_widgets(parameters, stored_values, editable_parameters):
                         ),
                         html.Div(
                             [
-                                create_containers(level + 1, ckey, cvalue)
-                                for ckey, cvalue in value.items()
+                                create_containers(
+                                    level + 1, container_key, container_value
+                                )
+                                for container_key, container_value in value.items()
                             ],
                             style=dict(padding="0.25rem"),
                         ),
@@ -135,8 +137,14 @@ def parameter_widgets(parameters, stored_values, editable_parameters):
                         html.Label(title(key), style=dict(fontWeight="bold")),
                         html.Div(
                             [
-                                html.Div([create_containers(level + 1, ckey, cvalue)])
-                                for ckey, cvalue in value.items()
+                                html.Div(
+                                    [
+                                        create_containers(
+                                            level + 1, container_key, container_value
+                                        )
+                                    ]
+                                )
+                                for container_key, container_value in value.items()
                             ],
                             style=dict(
                                 marginLeft="0.25rem",
