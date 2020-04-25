@@ -143,18 +143,16 @@ class BaseStudio:
 
         @app.callback(
             [
-                Output(
-                    component_id="result-function-name", component_property="children"
-                ),
-                Output(component_id="result-type", component_property="children"),
-                Output(component_id="error-container", component_property="children"),
-                Output(component_id="result-container", component_property="children"),
+                Output("result-function-name", "children"),
+                Output("result-type", "children"),
+                Output("error-container", "children"),
+                Output("result-container", "children"),
             ],
             [
-                Input(component_id="function-tree", component_property="selected"),
-                Input(component_id="result-processor", component_property="value"),
-                Input(component_id="result-or-definition", component_property="value"),
-                Input(component_id="url", component_property="pathname"),
+                Input("function-tree", "selected"),
+                Input("result-processor", "value"),
+                Input("result-or-definition", "value"),
+                Input("url", "pathname"),
                 Input({"type": "parameter", "key": ALL}, "value"),
             ],
         )
@@ -180,16 +178,14 @@ class BaseStudio:
             )
 
         @app.callback(
-            Output(component_id="graphviz-viewer", component_property="dot_source"),
+            Output("graphviz-viewer", "dot_source"),
             [
-                Input(component_id="node-name-filter", component_property="value"),
-                Input(component_id="graph-display-options", component_property="value"),
-                Input(component_id="graph-neighbourhood", component_property="value"),
-                Input(
-                    component_id="graph-neighbourhood-size", component_property="value"
-                ),
-                Input(component_id="function-tree", component_property="selected"),
-                Input(component_id="url", component_property="pathname"),
+                Input("node-name-filter", "value"),
+                Input("graph-display-options", "value"),
+                Input("graph-neighbourhood", "value"),
+                Input("graph-neighbourhood-size", "value"),
+                Input("function-tree", "selected"),
+                Input("url", "pathname"),
             ],
         )
         def populate_graph_with_composer(
@@ -211,11 +207,8 @@ class BaseStudio:
             )
 
         @app.callback(
-            Output(component_id="function-tree", component_property="data"),
-            [
-                Input(component_id="node-name-filter", component_property="value"),
-                Input(component_id="url", component_property="pathname"),
-            ],
+            Output("function-tree", "data"),
+            [Input("node-name-filter", "value"), Input("url", "pathname")],
         )
         def populate_tree_with_composer(node_name_filter, url):
             composer = self.get_composer(url)
@@ -242,8 +235,8 @@ class BaseStudio:
             return format_tree("_root_", tree)
 
         @app.callback(
-            Output(component_id="parameters-holder", component_property="children"),
-            [Input(component_id="url", component_property="pathname")],
+            Output("parameters-holder", "children"),
+            [Input("url", "pathname")],
             [State("parameter_store", "data")],
         )
         def populate_parameters_with_composer(url, store):
@@ -256,7 +249,7 @@ class BaseStudio:
 
         @app.callback(
             [Output(component.id, "style") for component in sidebar_components.values()]
-            + [Output(component_id="node-name-filter", component_property="style")],
+            + [Output("node-name-filter", "style")],
             [Input("explorer-selector", "value")],
         )
         def toggle_explorer(explorer):
