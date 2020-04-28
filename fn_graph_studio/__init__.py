@@ -22,6 +22,7 @@ from fn_graph.calculation import (
     get_execution_instructions,
 )
 from fn_graph.profiler import Profiler
+from fn_graph import Composer
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonLexer
@@ -147,35 +148,48 @@ class BaseStudio:
                 Output("result-type", "children"),
                 Output("error-container", "children"),
                 Output("result-container", "children"),
+                Output("cache-invalidation-store", "data"),
             ],
             [
                 Input("function-tree", "selected"),
                 Input("result-processor", "value"),
                 Input("result-or-definition", "value"),
+                Input("invalidate-cache", "n_clicks"),
                 Input("url", "pathname"),
                 Input({"type": "parameter", "key": ALL}, "value"),
             ],
+            [State("cache-invalidation-store", "data")],
         )
         def populate_result_with_composer(
             function_name,
             result_processor,
             result_or_definition,
+            invalidate_cache_clicks,
             path,
             parameter_values,
+            cache_invalidation_store,
         ):
+            composer = self.get_composer(path)
             parameters = {
                 input["id"]["key"]: input["value"]
                 for input in dash.callback_context.inputs_list[-1]
             }
 
+            invalidate_cache = (cache_invalidation_store or 0) < (
+                invalidate_cache_clicks or 0
+            )
+            if invalidate_cache:
+                composer.cache_invalidate(function_name)
+                cache_invalidation_store = invalidate_cache_clicks
+
             return self.populate_result_pane(
-                self.get_composer(path),
+                composer,
                 add_default_renderers(renderers),
                 parameters,
                 function_name,
                 result_processor,
                 result_or_definition,
-            )
+            ) + (cache_invalidation_store,)
 
         @app.callback(
             Output("graphviz-viewer", "dot_source"),
@@ -187,6 +201,7 @@ class BaseStudio:
                 Input("function-tree", "selected"),
                 Input("url", "pathname"),
             ],
+            [State("cache-invalidation-store", "data")],
         )
         def populate_graph_with_composer(
             node_name_filter,
@@ -195,6 +210,7 @@ class BaseStudio:
             graph_neighbourhood_size,
             selected_node,
             url,
+            cache_invalidation_store,
         ):
             composer = self.get_composer(url)
             return self.populate_graph(
@@ -307,7 +323,7 @@ class BaseStudio:
             else:
                 return data.get("selected", "")
 
-    def get_composer(self, path):
+    def get_composer(self, path) -> Composer:
         """
         Lazily calls the get_composer function based on the path
 
@@ -321,6 +337,7 @@ class BaseStudio:
                 dcc.Location(id="url", refresh=False),
                 dcc.Store(id="parameter_store", storage_type="session"),
                 dcc.Store(id="tree_store", storage_type="session"),
+                dcc.Store(id="cache-invalidation-store", storage_type="memory"),
                 DashSplitPane(
                     [self.sidebar_layout(), self.results_pane_layout()],
                     size=400,
@@ -500,14 +517,14 @@ class BaseStudio:
                 ),
                 html.Span(
                     [
-                        # html.Button("Invalidate Cache", id="invalidate-cache"),
+                        html.Button("Invalidate Cache", id="invalidate-cache"),
                         dcc.RadioItems(
                             id="result-or-definition",
                             options=options,
                             value="result",
                             persistence=True,
                             inputStyle=dict(marginLeft="10px", marginRight="2px"),
-                        )
+                        ),
                     ],
                     style=dict(display="flex", alignItems="center"),
                 ),
