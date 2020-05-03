@@ -33,6 +33,7 @@ from .parameter_editor import (
     parameter_widgets,
 )
 from .result_renderers import add_default_renderers
+from .layout_helpers import Pane, VStack, HStack, Fill, Scroll
 
 __package__ = "fn_graph_studio"
 
@@ -45,54 +46,6 @@ with open(Path(__file__).parent / "styles.css") as f:
 
 with open(Path(__file__).parent / "highlight.css") as f:
     highlight_styles = f.read()
-
-
-def BasePane(default_style):
-    def wrapper(*args, style=None, **kwargs):
-        return html.Div(*args, style={**default_style, **(style or {})}, **kwargs)
-
-    return wrapper
-
-
-grid_border = 0
-
-Pane = BasePane(dict(position="relative", border=f"{grid_border}px solid black"))
-
-Scroll = BasePane(
-    dict(
-        overflow="auto",
-        width="100%",
-        height="100%",
-        position="absolute",
-        border=f"{grid_border}px solid yellow",
-    )
-)
-Fill = BasePane(
-    dict(
-        height="100%",
-        width="100%",
-        position="absolute",
-        overflow="hidden",
-        border=f"{grid_border}px solid green",
-    )
-)
-HStack = BasePane(
-    dict(
-        display="flex",
-        overflow="hidden",
-        position="relative",
-        border=f"{grid_border}px solid blue",
-    )
-)
-VStack = BasePane(
-    dict(
-        display="flex",
-        flexDirection="column",
-        overflow="hidden",
-        position="relative",
-        border=f"{grid_border}px solid red",
-    )
-)
 
 
 class BaseStudio:

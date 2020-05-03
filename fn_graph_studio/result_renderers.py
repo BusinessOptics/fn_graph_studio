@@ -13,20 +13,38 @@ import pandas as pd
 import plotly
 import seaborn.axisgrid
 
+from .layout_helpers import Pane, VStack, HStack, Fill, Scroll
+
 
 def render_dataframe(result):
-    df = result.head(5000).reset_index()
-
-    return dash_table.DataTable(
-        id="table",
-        filter_action="native",
-        sort_action="native",
-        # fixed_rows={"headers": True, "data": 0},
-        sort_mode="multi",
-        columns=[{"name": i, "id": i} for i in df.columns],
-        # style_cell=dict(minWidth="100px"),
-        # style_table={"height": "100%", "overflowX": "scroll"},
-        data=df.to_dict("records"),
+    length = len(result)
+    width = len(result.columns)
+    render_length = 5000 // width
+    df = result.head(render_length).reset_index()
+    return Fill(
+        VStack(
+            [
+                html.Div(
+                    f"Displaying {render_length} of {length} rows ({render_length * width} of {length * width} cells)",
+                    style=dict(fontWeight="bold", textAlign="right", padding="2px"),
+                ),
+                Pane(
+                    Scroll(
+                        dash_table.DataTable(
+                            id="table",
+                            filter_action="native",
+                            sort_action="native",
+                            # fixed_rows={"headers": True, "data": 0},
+                            sort_mode="multi",
+                            columns=[{"name": i, "id": i} for i in df.columns],
+                            data=df.to_dict("records"),
+                        )
+                    ),
+                    style=dict(flexGrow=1, flexShrink=1),
+                ),
+            ],
+            style=dict(height="100%"),
+        )
     )
 
 
@@ -35,9 +53,13 @@ def render_plotly(result):
 
 
 def render_object(result):
-    return html.Pre(
-        str(pformat(result)), style=dict(paddingLeft="0.5rem", paddingTop="0.5rem")
-    )
+    max_length = 10000
+    formatted = pformat(result)
+    length = len(formatted)
+    if length > max_length:
+        formatted = f"Truncated to {max_length:,} characters from {length:,}\n\n{formatted[:max_length]}..."
+
+    return html.Pre(formatted, style=dict(paddingLeft="0.5rem", paddingTop="0.5rem"))
 
 
 def mpl_to_svg(in_fig: matplotlib.artist.Artist):
