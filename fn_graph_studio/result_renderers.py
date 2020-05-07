@@ -17,17 +17,20 @@ from .layout_helpers import Pane, VStack, HStack, Fill, Scroll
 
 
 def render_dataframe(result):
+    max_length = 5000
     length = len(result)
     width = len(result.columns)
-    render_length = 5000 // width
+    render_length = max_length // width
     df = result.head(render_length).reset_index()
     return Fill(
         VStack(
             [
                 html.Div(
-                    f"Displaying {render_length} of {length} rows ({render_length * width} of {length * width} cells)",
+                    f"Displaying {render_length:,} of {length:,} rows ({render_length * width:,} of {length * width:,} cells)",
                     style=dict(fontWeight="bold", textAlign="right", padding="2px"),
-                ),
+                )
+                if length > max_length
+                else None,
                 Pane(
                     Scroll(
                         dash_table.DataTable(
@@ -116,7 +119,7 @@ def add_default_renderers(renderers):
     return [
         *(renderers or {}).items(),
         (pd.DataFrame, render_dataframe),
-        (plotly.graph_objs._figure.Figure, render_plotly),
+        (plotly.graph_objs.Figure, render_plotly),
         (matplotlib.artist.Artist, render_matplotlib),
         (seaborn.axisgrid.Grid, render_seaborn),
         (nx.Graph, render_networkx),

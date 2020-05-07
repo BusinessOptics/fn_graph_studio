@@ -184,7 +184,7 @@ class BaseStudio:
             if node_name_filter:
                 matching_nodes = [
                     key
-                    for key in self.composer.functions().keys()
+                    for key in composer.functions().keys()
                     if node_name_filter.strip().lower() in key.lower()
                 ]
                 tree = composer.subgraph(matching_nodes)._build_name_tree()
