@@ -27,11 +27,7 @@ from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import PythonLexer
 
-from .parameter_editor import (
-    get_variable_parameter_ids,
-    get_variable_parameter_keys,
-    parameter_widgets,
-)
+from .parameter_editor import parameter_widgets
 from .result_renderers import add_default_renderers
 from .layout_helpers import Pane, VStack, HStack, Fill, Scroll
 
@@ -204,14 +200,34 @@ class BaseStudio:
             return format_tree("_root_", tree)
 
         @app.callback(
-            Output("parameters-holder", "children"),
-            [Input("url", "pathname")],
+            Output("parameters-widgets", "children"),
+            [
+                Input("url", "pathname"),
+                Input("parameter-reset-button", "n_clicks"),
+                Input({"type": "parameter", "key": ALL}, "value"),
+            ],
             [State("parameter_store", "data")],
         )
-        def populate_parameters_with_composer(url, store):
+        def populate_parameters_with_composer(
+            url, reset_button, parameter_value_placeholder, store
+        ):
+            changed_id = [p["prop_id"] for p in dash.callback_context.triggered][0]
             composer = self.get_composer(url)
+
+            if "parameter-reset-button" in changed_id:
+                # We want to reset all the values
+                parameter_values = {}
+                store = {}
+            else:
+                parameter_values = {
+                    input["id"]["key"]: input["value"]
+                    for input in dash.callback_context.inputs_list[-1]
+                }
+
             return parameter_widgets(
-                composer.parameters(), store or {}, self.editable_parameters
+                composer.parameters(),
+                parameter_values or store or {},
+                self.editable_parameters,
             )
 
         sidebar_components = self.sidebar_components()
@@ -242,14 +258,21 @@ class BaseStudio:
 
         @app.callback(
             Output("parameter_store", "data"),
-            [Input({"type": "parameter", "key": ALL}, "value")],
+            [
+                Input("url", "pathname"),
+                Input({"type": "parameter", "key": ALL}, "value"),
+            ],
         )
-        def save_parameters_to_session(parameter_values):
-            parameters = {
+        def save_parameters_to_session(url, parameter_values):
+            composer = self.get_composer(url)
+            composer_parameters = composer.parameters()
+            changed_parameters = {
                 input["id"]["key"]: input["value"]
                 for input in dash.callback_context.inputs_list[-1]
+                if input["value"] != composer_parameters[input["id"]["key"]]
             }
-            return parameters
+
+            return changed_parameters
 
         @app.callback(
             Output("tree_store", "data"),
@@ -381,7 +404,25 @@ class BaseStudio:
                 id="function-tree-holder",
                 style=dict(display="none"),
             ),
-            "parameters": Fill(id="parameters-holder", style=dict(display="none")),
+            "parameters": Fill(
+                VStack(
+                    [
+                        Pane(
+                            id="parameters-widgets",
+                            style=dict(flexGrow=1, flexShrink=1, overflowY="auto"),
+                        ),
+                        Pane(
+                            html.Button(
+                                "Reset parameters", id="parameter-reset-button"
+                            ),
+                            style=dict(padding="0.5rem", textAlign="right"),
+                        ),
+                    ],
+                    style=dict(height="100%"),
+                ),
+                id="parameters-holder",
+                style=dict(display="none"),
+            ),
         }
 
     def result_processor(self):

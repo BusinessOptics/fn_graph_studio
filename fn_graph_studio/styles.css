@@ -391,3 +391,17 @@ mark {
   border-top: solid 2px rgb(125, 194, 66);
   background: white;
 }
+
+button {
+  background-color: white;
+  border: 1px solid lightgrey;
+  padding: 2px 5px;
+  border-radius: 5px; 
+}
+
+button:hover {
+  background-color: lightgrey;
+  background: linear-gradient(lightgrey, white);
+  cursor: pointer;
+  border: 1px solid lightgrey;
+}

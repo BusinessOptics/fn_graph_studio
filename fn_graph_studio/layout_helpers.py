@@ -14,6 +14,7 @@ def BasePane(default_style):
 
 grid_border = 0
 
+
 Pane = BasePane(dict(position="relative", border=f"{grid_border}px solid black"))
 
 Scroll = BasePane(

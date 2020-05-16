@@ -1,7 +1,10 @@
 from collections import defaultdict
+from pprint import pformat
 
 import dash_core_components as dcc
 import dash_html_components as html
+
+GREEN = "rgb(125, 194, 66)"
 
 
 def get_parameter_attrs(key, type_):
@@ -47,40 +50,32 @@ def create_input(key, type_, value, editable):
         )
     else:
         return html.Pre(
-            str(value), style=dict(border="1px solid lightgrey", color="lightgrey")
+            pformat(value),
+            id={"type": "static-parameter", "key": key},
+            style=dict(border="1px solid lightgrey", color="lightgrey"),
         )
-
-
-def get_variable_parameter_keys(parameters):
-    for key, (type_, value) in parameters.items():
-        attrs = get_parameter_attrs(key, type_)
-        if attrs:
-            yield key
-
-
-def get_variable_parameter_ids(parameters):
-    for key, (type_, value) in parameters.items():
-        attrs = get_parameter_attrs(key, type_)
-        if attrs:
-            yield attrs["id"]
 
 
 def title(string):
     return string.replace("_", " ").capitalize()
 
 
-def parameter_widgets(parameters, stored_values, editable_parameters):
+def parameter_widgets(initial_parameters, current_values, editable_parameters):
+
     if editable_parameters:
         widgets = {
             key: create_input(
-                key, type_, stored_values[key] if key in stored_values else value, True
+                key,
+                type_,
+                current_values[key] if key in current_values else value,
+                True,
             )
-            for key, (type_, value) in parameters.items()
+            for key, (type_, value) in initial_parameters.items()
         }
     else:
         widgets = {
             key: create_input(key, type_, value, False)
-            for key, (type_, value) in parameters.items()
+            for key, (type_, value) in initial_parameters.items()
         }
 
     def recursive_tree():
@@ -157,9 +152,27 @@ def parameter_widgets(parameters, stored_values, editable_parameters):
                 )
 
         else:
+            function_name = value.id["key"]
+            changed = (
+                function_name in current_values
+                and current_values[function_name]
+                != initial_parameters[function_name][1]
+            )
+
             return html.Div(
                 [
-                    html.Label(title(key), style=dict(fontWeight="bold")),
+                    html.Div(
+                        [
+                            html.Label(title(key)),
+                            html.Span("(modified)") if changed else None,
+                        ],
+                        style=dict(
+                            display="flex",
+                            justifyContent="space-between",
+                            fontWeight="bold",
+                            color=GREEN if changed else None,
+                        ),
+                    ),
                     html.Div(value),
                 ],
                 style=dict(marginBottom="0.25rem"),
