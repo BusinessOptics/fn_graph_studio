@@ -71,7 +71,7 @@ The selected functions full name is and the result type is always shown.
 
 ### Result processor
 
-You can process all the results of a query by using the result processor (bottom left). This will evaluate a python expression on the results and show the result of teh expression. You can use any python code. The incoming result is available as the result variable.
+You can process all the results of a query by using the result processor (bottom left). This will evaluate a python expression on the results and show the result of the expression. You can use any python code. The incoming result is available as the result variable.
 
 ## Hot reloading
 
