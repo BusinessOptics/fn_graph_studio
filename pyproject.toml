@@ -6,7 +6,7 @@ authors = ["James Saunders <james@businessoptics.biz>"]
 license = "MIT"
 readme = "README.md"
 include = ["fn_graph_studio/styles.css"]
-# documentation="https://fn-graph.readthedocs.io/"
+documentation="https://fn-graph.readthedocs.io/"
 repository="https://github.com/BusinessOptics/fn_graph_studio"
 homepage="https://github.com/BusinessOptics/fn_graph_studio"
 
@@ -18,7 +18,7 @@ dash = "^1.7"
 dash_core_components = "^1.6"
 dash_split_pane = "^1.0"
 dash_interactive_graphviz = "^0.2"
-fn_graph = ">=0.7.2"
+fn_graph = {extras = ["examples"], version = "^0.10.1", optional=true}
 dash-treebeard = "^0.0.1"
 sh = "^1.0"
 dash-dangerously-set-inner-html = "^0.0.2"
@@ -29,6 +29,7 @@ dash-cytoscape = "^0.1.1"
 networkx = "^2.4"
 dash-ace-persistent = "^0.3.4"
 pygments = "^2.6.1"
+
 
 [tool.poetry.dev-dependencies]
 black = {version = "^18.3-alpha.0", allow-prereleases = true}
