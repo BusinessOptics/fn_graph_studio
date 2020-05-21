@@ -1,8 +1,8 @@
-# FnGraph Studio
+# Fn Graph Studio
 
 A visual studio for investigating fn_graph composers, light weight function pipelines for python.
 
-See [fn_graph](https://github.com/BusinessOptics/fn_graph/) for more information.
+See [fn_graph](https://fn-graph.businessoptics.biz/) for more information.
 
 ## Installation
 
@@ -12,20 +12,35 @@ pip install fn_graph_studio
 
 ## Usage
 
-If you don't know what fn_graph is you really do need to check it out at [fn_graph](https://github.com/BusinessOptics/fn_graph/).
+If you don't know what fn_graph is you really do need to check it out at:
 
-Assuming you have a composer already built, create a python file.
+[fn-graph.businessoptics.biz](https://fn-graph.businessoptics.biz/) 
+ 
+ or:
+ 
+[github.com/BusinessOptics/fn_graph/](https://github.com/BusinessOptics/fn_graph/)
 
-```python
-from fn_graph_studio import run_studio
+Assuming you have a composer already built you can run it from the command line.
 
-# Assume you have a composer at this location
-from .my_composer_module import my_composer
-
-run_studio(my_composer)
+```
+fn_graph_studio run my_package.my_module:composer
 ```
 
-then run the file. Then open your browser to [http://localhost:8050](http://localhost:8050).
+where `my_package.my_module` is the module path and `composer` is the variable name of the composer in that module.
+
+Then open your browser to [http://localhost:8050](http://localhost:8050).
+
+You can also run the examples with:
+
+```
+fn_graph_studio example <EXAMPLE NAME>
+```
+
+for instance
+
+```
+fn_graph_studio example machine_learning
+```
 
 ## The interface
 
@@ -79,13 +94,4 @@ The FnGraph Studio take advantage of the hot reloading built into the dash frame
 
 ## Caching
 
-It can be extremely useful to use the development cache with the studio, the development cache will store results to disk (so it will maintain through live reloading), and will invalidate the cache when functions are changed. To do this alter your studio python file to something like.
-
-```python
-from fn_graph_studio import run_studio
-
-# Assume you have a composer at this location
-from .my_composer_module import my_composer
-
-run_studio(my_composer.development_cache(__name__))
-```
+It can be extremely useful to use the development cache with the studio, the development cache will store results to disk (so it will maintain through live reloading), and will invalidate the cache when functions are changed. 
