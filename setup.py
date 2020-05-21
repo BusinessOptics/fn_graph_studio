@@ -24,7 +24,7 @@ if os.path.exists(readme_path):
 setup(
     long_description=readme,
     name='fn_graph_studio',
-    version='0.9.0',
+    version='0.10.0',
     description='A web based explorer for fn_graph function composers',
     python_requires='==3.*,>=3.7.0',
     project_urls={"documentation": "https://fn-graph.readthedocs.io/", "homepage": "https://github.com/BusinessOptics/fn_graph_studio", "repository": "https://github.com/BusinessOptics/fn_graph_studio"},
