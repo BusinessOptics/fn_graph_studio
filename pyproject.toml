@@ -17,7 +17,7 @@ plotly = "^4.0"
 dash = "^1.0"
 dash_core_components = "^1.0"
 dash_split_pane = "^1.0"
-dash_interactive_graphviz = "^0.0"
+dash_interactive_graphviz = "^0.2.0"
 fn_graph = {extras = ["examples"], version = "^0.14"}
 dash-treebeard = "^0.0.1"
 sh = "^1.0"

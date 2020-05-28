@@ -179,7 +179,7 @@ description = "An interactive graphviz viewer for Dash"
 name = "dash-interactive-graphviz"
 optional = false
 python-versions = "*"
-version = "0.0.3"
+version = "0.2.1"
 
 [[package]]
 category = "main"
@@ -755,7 +755,7 @@ pandas = ">=0.24"
 requests = ">=2.20"
 
 [metadata]
-content-hash = "725fcba41440496cea9c63f179f05db6c87a2427c1753a8c027e8288ec04c986"
+content-hash = "a64f442b8e74575808cfe712c9cb6dadb7de12d22b3a0eb10c79aeb7ca0270e5"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -849,7 +849,7 @@ dash-html-components = [
     {file = "dash_html_components-1.0.3.tar.gz", hash = "sha256:dafb54ae8ab601fffe50c74d72b32783dec2beea65fd1c7e7dd6a66e20e545ba"},
 ]
 dash-interactive-graphviz = [
-    {file = "dash_interactive_graphviz-0.0.3.tar.gz", hash = "sha256:1bbf8da86f157fa9f9a29b7843a0ee99a6ca50b59928c2e5dc43873639888a35"},
+    {file = "dash_interactive_graphviz-0.2.1.tar.gz", hash = "sha256:d544b5cf64742d3e1f08d24e3ddd99d6da3746279263b5a7ad2848fcc3e998e2"},
 ]
 dash-renderer = [
     {file = "dash_renderer-1.4.1.tar.gz", hash = "sha256:bbb23ba60014924225cb7385d73619843050c363d96486a3cb14ea6fca39d485"},
