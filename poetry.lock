@@ -64,6 +64,22 @@ version = "1.0.7"
 
 [[package]]
 category = "main"
+description = "Python package for providing Mozilla's CA Bundle."
+name = "certifi"
+optional = false
+python-versions = "*"
+version = "2020.4.5.1"
+
+[[package]]
+category = "main"
+description = "Universal encoding detector for Python 2 and 3"
+name = "chardet"
+optional = false
+python-versions = "*"
+version = "3.0.4"
+
+[[package]]
+category = "main"
 description = "Composable command line interface toolkit"
 name = "click"
 optional = false
@@ -163,7 +179,7 @@ description = "An interactive graphviz viewer for Dash"
 name = "dash-interactive-graphviz"
 optional = false
 python-versions = "*"
-version = "0.2.1"
+version = "0.0.3"
 
 [[package]]
 category = "main"
@@ -240,9 +256,9 @@ flask = "*"
 category = "main"
 description = "Manage, maintain and reuse complex function graphs without the hassle."
 name = "fn-graph"
-optional = true
+optional = false
 python-versions = ">=3.7,<4.0"
-version = "0.10.1"
+version = "0.14.0"
 
 [package.dependencies]
 graphviz = ">=0.13.2,<0.14.0"
@@ -273,8 +289,12 @@ version = ">=0.0,<0.1"
 optional = true
 version = ">=0.11.1,<0.12.0"
 
+[package.dependencies.yfinance]
+optional = true
+version = ">=0.1,<0.2"
+
 [package.extras]
-examples = ["seaborn (>=0.10.0,<0.11.0)", "statsmodels (>=0.11.1,<0.12.0)", "matplotlib (>=3.0,<4.0)", "sklearn (>=0.0,<0.1)", "plotly (>=4.0,<5.0)", "pandas (>=0.25.3,<0.26.0)"]
+examples = ["seaborn (>=0.10.0,<0.11.0)", "statsmodels (>=0.11.1,<0.12.0)", "matplotlib (>=3.0,<4.0)", "sklearn (>=0.0,<0.1)", "plotly (>=4.0,<5.0)", "pandas (>=0.25.3,<0.26.0)", "yfinance (>=0.1,<0.2)"]
 
 [[package]]
 category = "main"
@@ -288,7 +308,7 @@ version = "0.18.2"
 category = "main"
 description = "Simple Python interface for Graphviz"
 name = "graphviz"
-optional = true
+optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
 version = "0.13.2"
 
@@ -296,6 +316,14 @@ version = "0.13.2"
 dev = ["tox (>=3.0)", "flake8", "pep8-naming", "wheel", "twine"]
 docs = ["sphinx (>=1.7)", "sphinx-rtd-theme"]
 test = ["mock (>=2)", "pytest (>=3.4,<3.10.0 || >3.10.0)", "pytest-mock (>=1.8)", "pytest-cov"]
+
+[[package]]
+category = "main"
+description = "Internationalized Domain Names in Applications (IDNA)"
+name = "idna"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "2.9"
 
 [[package]]
 category = "dev"
@@ -337,7 +365,7 @@ i18n = ["Babel (>=0.8)"]
 category = "main"
 description = "Lightweight pipelining: using Python functions as pipeline jobs."
 name = "joblib"
-optional = true
+optional = false
 python-versions = ">=3.6"
 version = "0.15.1"
 
@@ -361,7 +389,7 @@ version = "1.4.3"
 category = "main"
 description = "Small personal collection of python utility functions"
 name = "littleutils"
-optional = true
+optional = false
 python-versions = "*"
 version = "0.2.2"
 
@@ -395,6 +423,14 @@ name = "mccabe"
 optional = false
 python-versions = "*"
 version = "0.6.1"
+
+[[package]]
+category = "main"
+description = "Non-blocking Python methods using decorators"
+name = "multitasking"
+optional = false
+python-versions = "*"
+version = "0.0.9"
 
 [[package]]
 category = "main"
@@ -458,11 +494,11 @@ six = "*"
 
 [[package]]
 category = "main"
-description = "An open-source, interactive graphing library for Python"
+description = "An open-source, interactive data visualization library for Python"
 name = "plotly"
 optional = false
 python-versions = "*"
-version = "4.7.1"
+version = "4.8.0"
 
 [package.dependencies]
 retrying = ">=1.3.3"
@@ -520,6 +556,24 @@ version = "2020.1"
 
 [[package]]
 category = "main"
+description = "Python HTTP for Humans."
+name = "requests"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "2.23.0"
+
+[package.dependencies]
+certifi = ">=2017.4.17"
+chardet = ">=3.0.2,<4"
+idna = ">=2.5,<3"
+urllib3 = ">=1.21.1,<1.25.0 || >1.25.0,<1.25.1 || >1.25.1,<1.26"
+
+[package.extras]
+security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
+
+[[package]]
+category = "main"
 description = "Retrying"
 name = "retrying"
 optional = false
@@ -544,7 +598,7 @@ dev = ["pytest"]
 category = "main"
 description = "A set of python modules for machine learning and data mining"
 name = "scikit-learn"
-optional = true
+optional = false
 python-versions = ">=3.6"
 version = "0.23.1"
 
@@ -602,7 +656,7 @@ version = "1.15.0"
 category = "main"
 description = "A set of python modules for machine learning and data mining"
 name = "sklearn"
-optional = true
+optional = false
 python-versions = "*"
 version = "0.0"
 
@@ -632,7 +686,7 @@ docs = ["sphinx", "nbconvert", "jupyter-client", "ipykernel", "matplotlib", "nbf
 category = "main"
 description = "threadpoolctl"
 name = "threadpoolctl"
-optional = true
+optional = false
 python-versions = ">=3.5"
 version = "2.0.0"
 
@@ -655,6 +709,19 @@ version = "1.4.1"
 
 [[package]]
 category = "main"
+description = "HTTP library with thread-safe connection pooling, file post, and more."
+name = "urllib3"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+version = "1.25.9"
+
+[package.extras]
+brotli = ["brotlipy (>=0.6.0)"]
+secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "pyOpenSSL (>=0.14)", "ipaddress"]
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
+
+[[package]]
+category = "main"
 description = "The comprehensive WSGI web application library."
 name = "werkzeug"
 optional = false
@@ -673,8 +740,22 @@ optional = false
 python-versions = "*"
 version = "1.12.1"
 
+[[package]]
+category = "main"
+description = "Yahoo! Finance market data downloader"
+name = "yfinance"
+optional = false
+python-versions = "*"
+version = "0.1.54"
+
+[package.dependencies]
+multitasking = ">=0.0.7"
+numpy = ">=1.15"
+pandas = ">=0.24"
+requests = ">=2.20"
+
 [metadata]
-content-hash = "4708da80e874461cc05ce7b333cec78e5d78187fa5da15897cc869df6fb3bcbd"
+content-hash = "725fcba41440496cea9c63f179f05db6c87a2427c1753a8c027e8288ec04c986"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -729,6 +810,14 @@ brotli = [
     {file = "Brotli-1.0.7-cp38-cp38-win_amd64.whl", hash = "sha256:f9ee88bb52352588ceb811d045b5c9bb1dc38927bc150fd156244f60ff3f59f1"},
     {file = "Brotli-1.0.7.zip", hash = "sha256:0538dc1744fd17c314d2adc409ea7d1b779783b89fd95bcfb0c2acc93a6ea5a7"},
 ]
+certifi = [
+    {file = "certifi-2020.4.5.1-py2.py3-none-any.whl", hash = "sha256:1d987a998c75633c40847cc966fcf5904906c920a7f17ef374f5aa4282abd304"},
+    {file = "certifi-2020.4.5.1.tar.gz", hash = "sha256:51fcb31174be6e6664c5f69e3e1691a2d72a1a12e90f872cbdb1567eb47b6519"},
+]
+chardet = [
+    {file = "chardet-3.0.4-py2.py3-none-any.whl", hash = "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"},
+    {file = "chardet-3.0.4.tar.gz", hash = "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"},
+]
 click = [
     {file = "click-7.1.2-py2.py3-none-any.whl", hash = "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"},
     {file = "click-7.1.2.tar.gz", hash = "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a"},
@@ -760,7 +849,7 @@ dash-html-components = [
     {file = "dash_html_components-1.0.3.tar.gz", hash = "sha256:dafb54ae8ab601fffe50c74d72b32783dec2beea65fd1c7e7dd6a66e20e545ba"},
 ]
 dash-interactive-graphviz = [
-    {file = "dash_interactive_graphviz-0.2.1.tar.gz", hash = "sha256:d544b5cf64742d3e1f08d24e3ddd99d6da3746279263b5a7ad2848fcc3e998e2"},
+    {file = "dash_interactive_graphviz-0.0.3.tar.gz", hash = "sha256:1bbf8da86f157fa9f9a29b7843a0ee99a6ca50b59928c2e5dc43873639888a35"},
 ]
 dash-renderer = [
     {file = "dash_renderer-1.4.1.tar.gz", hash = "sha256:bbb23ba60014924225cb7385d73619843050c363d96486a3cb14ea6fca39d485"},
@@ -786,8 +875,8 @@ flask-compress = [
     {file = "Flask-Compress-1.5.0.tar.gz", hash = "sha256:f367b2b46003dd62be34f7fb1379938032656dca56377a9bc90e7188e4289a7c"},
 ]
 fn-graph = [
-    {file = "fn_graph-0.10.1-py3-none-any.whl", hash = "sha256:49f4d7d694a540ea7b3786f59293bb8635c202ee0701b92aa52ecfaa808665fb"},
-    {file = "fn_graph-0.10.1.tar.gz", hash = "sha256:d03f4c8b156d9eec68fb003ab257867795a0b5818889241abbd978fd6537f036"},
+    {file = "fn_graph-0.14.0-py3-none-any.whl", hash = "sha256:6194035679df59ff4edcd39f6ffb081ea5a3791c818e5800a9d55f34825c3351"},
+    {file = "fn_graph-0.14.0.tar.gz", hash = "sha256:17db08ff974a6a3d44096bb4098136b01c6bb423728055c6a17754bcd1dd4613"},
 ]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
@@ -795,6 +884,10 @@ future = [
 graphviz = [
     {file = "graphviz-0.13.2-py2.py3-none-any.whl", hash = "sha256:241fb099e32b8e8c2acca747211c8237e40c0b89f24b1622860075d59f4c4b25"},
     {file = "graphviz-0.13.2.zip", hash = "sha256:60acbeee346e8c14555821eab57dbf68a169e6c10bce40e83c1bf44f63a62a01"},
+]
+idna = [
+    {file = "idna-2.9-py2.py3-none-any.whl", hash = "sha256:a068a21ceac8a4d63dbfd964670474107f541babbd2250d61922f029858365fa"},
+    {file = "idna-2.9.tar.gz", hash = "sha256:7588d1c14ae4c77d74036e8c22ff447b26d0fde8f007354fd48a7814db15b7cb"},
 ]
 isort = [
     {file = "isort-4.3.21-py2.py3-none-any.whl", hash = "sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd"},
@@ -911,6 +1004,9 @@ mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
 ]
+multitasking = [
+    {file = "multitasking-0.0.9.tar.gz", hash = "sha256:b59d99f709d2e17d60ccaa2be09771b6e9ed9391c63f083c0701e724f624d2e0"},
+]
 networkx = [
     {file = "networkx-2.4-py3-none-any.whl", hash = "sha256:cdfbf698749a5014bf2ed9db4a07a5295df1d3a53bf80bf3cbd61edf9df05fa1"},
     {file = "networkx-2.4.tar.gz", hash = "sha256:f8f4ff0b6f96e4f9b16af6b84622597b5334bf9cae8cf9b2e42e7985d5c95c64"},
@@ -964,8 +1060,8 @@ patsy = [
     {file = "patsy-0.5.1.tar.gz", hash = "sha256:f115cec4201e1465cd58b9866b0b0e7b941caafec129869057405bfe5b5e3991"},
 ]
 plotly = [
-    {file = "plotly-4.7.1-py2.py3-none-any.whl", hash = "sha256:ad0adf659ae88caf09d94a97b7ae1272b0868b30147cccf43caae7fae49a6f45"},
-    {file = "plotly-4.7.1.tar.gz", hash = "sha256:7a48cdedd13cef6745de5527d26928791f1b911b88c435667b74eadd427a10e8"},
+    {file = "plotly-4.8.0-py2.py3-none-any.whl", hash = "sha256:63a22df7bd1dfdfbd0ea02b8dbfa24757b0539b3446beb7c785dffa6410e1242"},
+    {file = "plotly-4.8.0.tar.gz", hash = "sha256:92b57ce1cc024af7cf64fd90577de03dadeed61171e469aad5e421fbff3820ee"},
 ]
 pygments = [
     {file = "Pygments-2.6.1-py3-none-any.whl", hash = "sha256:ff7a40b4860b727ab48fad6360eb351cc1b33cbf9b15a0f689ca5353e9463324"},
@@ -986,6 +1082,10 @@ python-dateutil = [
 pytz = [
     {file = "pytz-2020.1-py2.py3-none-any.whl", hash = "sha256:a494d53b6d39c3c6e44c3bec237336e14305e4f29bbf800b599253057fbb79ed"},
     {file = "pytz-2020.1.tar.gz", hash = "sha256:c35965d010ce31b23eeb663ed3cc8c906275d6be1a34393a1d73a41febf4a048"},
+]
+requests = [
+    {file = "requests-2.23.0-py2.py3-none-any.whl", hash = "sha256:43999036bfa82904b6af1d99e4882b560e5e2c68e5c4b0aa03b655f3d7d73fee"},
+    {file = "requests-2.23.0.tar.gz", hash = "sha256:b3f43d496c6daba4493e7c431722aeb7dbc6288f52a6e04e7b6023b0247817e6"},
 ]
 retrying = [
     {file = "retrying-1.3.3.tar.gz", hash = "sha256:08c039560a6da2fe4f2c426d0766e284d3b736e355f8dd24b37367b0bb41973b"},
@@ -1103,10 +1203,17 @@ typed-ast = [
     {file = "typed_ast-1.4.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:d43943ef777f9a1c42bf4e552ba23ac77a6351de620aa9acf64ad54933ad4d34"},
     {file = "typed_ast-1.4.1.tar.gz", hash = "sha256:8c8aaad94455178e3187ab22c8b01a3837f8ee50e09cf31f1ba129eb293ec30b"},
 ]
+urllib3 = [
+    {file = "urllib3-1.25.9-py2.py3-none-any.whl", hash = "sha256:88206b0eb87e6d677d424843ac5209e3fb9d0190d0ee169599165ec25e9d9115"},
+    {file = "urllib3-1.25.9.tar.gz", hash = "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527"},
+]
 werkzeug = [
     {file = "Werkzeug-1.0.1-py2.py3-none-any.whl", hash = "sha256:2de2a5db0baeae7b2d2664949077c2ac63fbd16d98da0ff71837f7d1dea3fd43"},
     {file = "Werkzeug-1.0.1.tar.gz", hash = "sha256:6c80b1e5ad3665290ea39320b91e1be1e0d5f60652b964a3070216de83d2e47c"},
 ]
 wrapt = [
     {file = "wrapt-1.12.1.tar.gz", hash = "sha256:b62ffa81fb85f4332a4f609cab4ac40709470da05643a082ec1eb88e6d9b97d7"},
+]
+yfinance = [
+    {file = "yfinance-0.1.54.tar.gz", hash = "sha256:cee223cbd31e14955869f7978bcf83776d644345c7dea31ba5d41c309bfb0d3d"},
 ]
