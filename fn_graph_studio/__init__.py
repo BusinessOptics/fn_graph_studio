@@ -374,7 +374,8 @@ class BaseStudio:
                         {"label": "Links", "value": "links"},
                         {"label": "Caching", "value": "caching"},
                     ],
-                    persistence=1,
+                    value=["parameters"],
+                    persistence=True,
                     labelStyle=dict(paddingRight=10),
                     inputStyle=dict(marginRight=2),
                 ),
@@ -453,7 +454,7 @@ class BaseStudio:
                     [
                         dcc.Tabs(
                             id="explorer-selector",
-                            value="tab-1-example",
+                            value="graph",
                             parent_className="custom-tabs",
                             className="custom-tabs-container",
                             children=[
