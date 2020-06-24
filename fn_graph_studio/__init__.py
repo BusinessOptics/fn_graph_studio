@@ -149,6 +149,7 @@ class BaseStudio:
                 Input("graph-neighbourhood-size", "value"),
                 Input("function-tree", "selected"),
                 Input("url", "pathname"),
+                Input({"type": "parameter", "key": ALL}, "value"),
             ],
             [State("cache-invalidation-store", "data")],
         )
@@ -159,11 +160,18 @@ class BaseStudio:
             graph_neighbourhood_size,
             selected_node,
             url,
+            parameter_values,
             cache_invalidation_store,
         ):
             composer = self.get_composer(url)
+            parameters = {
+                input["id"]["key"]: input["value"]
+                for input in dash.callback_context.inputs_list[-1]
+            }
+
             return self.populate_graph(
                 composer,
+                parameters,
                 node_name_filter,
                 graph_display_options,
                 graph_neighbourhood,
@@ -771,7 +779,7 @@ class BaseStudio:
 
     def update_composer_parameters(self, composer, parameters):
         """
-        Ensures that boolean parameters et cast correctly
+        Ensures that boolean parameters get cast correctly
         """
 
         def smartish_cast(type_, value):
@@ -790,12 +798,14 @@ class BaseStudio:
     def populate_graph(
         self,
         composer,
+        parameters,
         node_name_filter,
         graph_display_options,
         graph_neighbourhood,
         graph_neighbourhood_size,
         selected_node,
     ):
+        composer = self.update_composer_parameters(composer, parameters)
         graph_display_options = graph_display_options or []
         hide_parameters = "parameters" not in graph_display_options
         flatten = "flatten" in graph_display_options
