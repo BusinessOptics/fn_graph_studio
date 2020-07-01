@@ -6,9 +6,9 @@ authors = ["James Saunders <james@businessoptics.biz>"]
 license = "MIT"
 readme = "README.md"
 include = ["fn_graph_studio/styles.css"]
-documentation="https://fn-graph.readthedocs.io/"
-repository="https://github.com/BusinessOptics/fn_graph_studio"
-homepage="https://github.com/BusinessOptics/fn_graph_studio"
+documentation = "https://fn-graph.readthedocs.io/"
+repository = "https://github.com/BusinessOptics/fn_graph_studio"
+homepage = "https://github.com/BusinessOptics/fn_graph_studio"
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -18,7 +18,7 @@ dash = "^1.10"
 dash_core_components = "^1.0"
 dash_split_pane = "^1.0"
 dash_interactive_graphviz = "^0.2.0"
-fn_graph = {extras = ["examples"], version = "^0.14"}
+fn_graph = { extras = ["examples"], version = "*" }
 dash-treebeard = "^0.0.1"
 sh = "^1.0"
 dash-dangerously-set-inner-html = "^0.0.2"
@@ -30,9 +30,8 @@ networkx = "^2.4"
 dash-ace-persistent = "^0.3.4"
 pygments = "^2.6.1"
 
-
 [tool.poetry.dev-dependencies]
-black = {version = "^18.3-alpha.0", allow-prereleases = true}
+black = { version = "^18.3-alpha.0", allow-prereleases = true }
 pylint = "^2.5.2"
 rope = "^0.17.0"
 
@@ -40,8 +39,8 @@ rope = "^0.17.0"
 fn_graph_studio = "fn_graph_studio.cli:cli"
 
 [tool.dephell.main]
-from = {format = "poetry", path = "pyproject.toml"}
-to = {format = "setuppy", path = "setup.py"}
+from = { format = "poetry", path = "pyproject.toml" }
+to = { format = "setuppy", path = "setup.py" }
 
 [build-system]
 requires = ["poetry>=0.12"]
