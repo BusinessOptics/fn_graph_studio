@@ -24,7 +24,7 @@ if os.path.exists(readme_path):
 setup(
     long_description=readme,
     name='fn_graph_studio',
-    version='0.10.4',
+    version='0.10.5',
     description='A web based explorer for fn_graph function composers',
     python_requires='==3.*,>=3.7.0',
     project_urls={"documentation": "https://fn-graph.readthedocs.io/", "homepage": "https://github.com/BusinessOptics/fn_graph_studio", "repository": "https://github.com/BusinessOptics/fn_graph_studio"},
@@ -35,6 +35,6 @@ setup(
     packages=['fn_graph_studio'],
     package_dir={"": "."},
     package_data={"fn_graph_studio": ["*.css", "assets/*.ico"]},
-    install_requires=['dash==1.*,>=1.10.0', 'dash-ace-persistent==0.*,>=0.3.4', 'dash-core-components==1.*,>=1.0.0', 'dash-cytoscape==0.*,>=0.1.1', 'dash-dangerously-set-inner-html==0.*,>=0.0.2', 'dash-interactive-graphviz==0.*,>=0.2.0', 'dash-split-pane==1.*,>=1.0.0', 'dash-treebeard==0.*,>=0.0.1', 'fn-graph[examples]==0.*,>=0.14.0', 'matplotlib==3.*,>=3.2.1', 'networkx==2.*,>=2.4.0', 'pandas>=0.25.3', 'plotly==4.*,>=4.0.0', 'pygments==2.*,>=2.6.1', 'seaborn==0.*,>=0.10.0', 'sh==1.*,>=1.0.0', 'statsmodels==0.*,>=0.11.1'],
+    install_requires=['dash==1.*,>=1.10.0', 'dash-ace-persistent==0.*,>=0.3.4', 'dash-core-components==1.*,>=1.0.0', 'dash-cytoscape==0.*,>=0.1.1', 'dash-dangerously-set-inner-html==0.*,>=0.0.2', 'dash-interactive-graphviz==0.*,>=0.2.0', 'dash-split-pane==1.*,>=1.0.0', 'dash-treebeard==0.*,>=0.0.1', 'fn-graph[examples]', 'matplotlib==3.*,>=3.2.1', 'networkx==2.*,>=2.4.0', 'pandas>=0.25.3', 'plotly==4.*,>=4.0.0', 'pygments==2.*,>=2.6.1', 'seaborn==0.*,>=0.10.0', 'sh==1.*,>=1.0.0', 'statsmodels==0.*,>=0.11.1'],
     extras_require={"dev": ["black==18.*,>=18.3.0.a0", "pylint==2.*,>=2.5.2", "rope==0.*,>=0.17.0"]},
 )
